@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Your Match</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #191414;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+        .profile-card {
+            background-color: #1DB954;
+            border-radius: 10px;
+            width: 300px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            position: relative;
+            color: #191414;
+            margin-bottom: 20px;
+        }
+        .profile-card h2 {
+            margin: 5px 0;
+            font-size: 1.2em;
+        }
+        .profile-card p {
+            margin: 3px 0;
+            font-size: 0.9em;
+        }
+        .profile-card .top-artists, .profile-card .top-songs {
+            margin: 10px 0;
+        }
+        .profile-card .top-artists img, .profile-card .top-songs img {
+            width: 40px;
+            height: 40px;
+            border-radius: 5px;
+            margin: 3px;
+        }
+        .profile-card .top-artists .artist, .profile-card .top-songs .song {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        .profile-card .top-artists .artist p, .profile-card .top-songs .song p {
+            margin-left: 5px;
+            text-align: left;
+            font-size: 0.8em;
+        }
+        .actions {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+        }
+        .actions .btn {
+            background-color: #191414;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        .actions .btn i {
+            color: #1DB954;
+            font-size: 1.2em;
+        }
+        .actions .btn.pass {
+            background-color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div id="profiles-container">
+        <!-- Profiller buraya JavaScript ile yüklenecek -->
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const profilesContainer = document.getElementById("profiles-container");
+
+            // Backend'den profilleri çek
+            try {
+                const response = await fetch("/api/get_profiles");
+                const profiles = await response.json();
+
+                if (profiles.length === 0) {
+                    profilesContainer.innerHTML = "<p>No more profiles to like. Try again later!</p>";
+                    return;
+                }
+
+                // Profilleri ekrana yerleştir
+                profiles.forEach(profile => {
+                    const profileCard = document.createElement("div");
+                    profileCard.className = "profile-card";
+
+                    profileCard.innerHTML = `
+                        <h2>${profile.display_name}</h2>
+                        <div class="top-artists">
+                            <h3>Top Artists</h3>
+                            ${profile.top_artists.slice(0, 3).map(artist => `
+                                <div class="artist">
+                                    <img src="https://placehold.co/40x40" alt="${artist}">
+                                    <p>${artist}</p>
+                                </div>
+                            `).join("")}
+                        </div>
+                        <div class="top-songs">
+                            <h3>Top Songs</h3>
+                            ${profile.top_tracks.slice(0, 3).map(track => `
+                                <div class="song">
+                                    <img src="https://placehold.co/40x40" alt="${track}">
+                                    <p>${track}</p>
+                                </div>
+                            `).join("")}
+                        </div>
+                        <div class="actions">
+                            <button class="btn pass" onclick="handleDislike(${profile.id})">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <button class="btn like" onclick="handleLike(${profile.id})">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                    `;
+
+                    profilesContainer.appendChild(profileCard);
+                });
+            } catch (error) {
+                profilesContainer.innerHTML = `<p>Error loading profiles. Please try again later.</p>`;
+                console.error("Error fetching profiles:", error);
+            }
+        });
+
+        // Beğen ve geç fonksiyonları
+        function handleLike(profileId) {
+            fetch("/api/like_profile", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ profile_id: profileId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message || "Liked!");
+                location.reload(); // Sayfayı yenile
+            })
+            .catch(err => console.error("Error liking profile:", err));
+        }
+
+        function handleDislike(profileId) {
+            alert(`You passed on profile ID: ${profileId}`);
+        }
+    </script>
+</body>
+</html>

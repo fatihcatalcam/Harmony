@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmony - Dashboard</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #121212, #1db954);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background: #121212;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #1db954;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #1db954;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        header img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        header img:hover {
+            transform: scale(1.1);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: #1db954;
+            color: #fff;
+            border-radius: 30px;
+            font-size: 1rem;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            background: #1aa34a;
+            transform: scale(1.05);
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container h2 {
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        .description {
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            max-width: 600px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px 0;
+            font-size: 0.9rem;
+            background: #121212;
+            border-top: 2px solid #1db954;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Harmony</h1>
+        <div class="header-right">
+            <img id="profile-pic" src="{{ profile_picture_url }}" alt="Profile">
+            <a href="/logout" id="logout-btn" class="btn">Logout</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2>Welcome Back to Harmony!</h2>
+        <p id="no-matches-text">No matches found. Try liking more profiles!</p>
+        <a href="/find-profiles" class="btn">Find Profiles to Like</a>
+
+        <!-- Profiller buraya gelecek -->
+        <div id="profiles-container"></div>
+    </div>
+    
+
+    <footer>
+        <p>© 2025 Harmony | Built with ❤️ for music lovers.</p>
+    </footer>
+
+    <!-- Bağlı JavaScript -->
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

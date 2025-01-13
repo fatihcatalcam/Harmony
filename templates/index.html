@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmony - Connect Through Music</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1db954, #121212);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header Styles */
+        header {
+            background: #121212;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #1db954;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #1db954;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        header img {
+            display: none; /* Varsayılan olarak gizli */
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-left: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        header img:hover {
+            transform: scale(1.1);
+        }
+
+        /* Button Styles */
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #1db954;
+            color: #fff;
+            font-size: 1.2rem;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            background: #1aa34a;
+            transform: scale(1.05);
+        }
+
+        /* Centered Container */
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .description {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px 0;
+            font-size: 0.9rem;
+            background: #121212;
+            border-top: 2px solid #1db954;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+            left: 0;
+        }
+
+        footer a {
+            color: #1db954;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Harmony</h1>
+    </header>
+
+    <div class="container">
+        <h2>Welcome to Harmony!</h2>
+        <p class="description">
+            Discover. Connect. Share your love for music! <br>
+            Harmony uses your Spotify data to find your favorite artists, tracks, and genres. 
+            Join the community and let music bring you closer to others.
+        </p>
+        <a href="/login" class="btn" id="login-btn">Log in with Spotify</a>
+    </div>
+
+    <footer>
+        <p>© 2025 Harmony | Built with ❤️ for music lovers. <a href="#">Learn More</a></p>
+    </footer>
+
+    <script src="/static/js/index.js"></script>
+
+
+</body>
+</html>

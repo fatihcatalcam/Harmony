@@ -1,0 +1,122 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #1db954, #191414);
+    color: #fff;
+    min-height: 100vh;
+    transition: background-color 0.3s ease;
+}
+
+.profile-container {
+    
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background: rgba(30, 30, 30, 0.95);
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.user-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.user-header img {
+    border-radius: 50%;
+    width: 150px;
+    height: 150px;
+    margin-bottom: 10px;
+    box-shadow: 0 0 10px #1db954;
+}
+
+.user-header h1 {
+    margin: 0;
+    font-size: 2rem;
+}
+
+.section {
+    margin-bottom: 30px;
+}
+
+.section h2 {
+    margin-bottom: 20px;
+    color: #1db954;
+}
+
+.list-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.list-item img {
+    width: 80px;
+    height: 80px;
+    border-radius: 5px;
+    margin-right: 15px;
+}
+
+.list-item a {
+    color: #1db954;
+    text-decoration: none;
+}
+
+.list-item a:hover {
+    color: #1db954;
+    text-shadow: 0 0 5px #1db954;
+    text-decoration: underline;
+}
+
+.section ul {
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.section ul li {
+    background: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+footer {
+    text-align: center;
+    margin-top: 30px;
+    padding: 10px 0;
+    background: #000;
+}
+
+.back-btn {
+    display: inline-block;
+    margin-bottom: 20px;
+    padding: 10px 20px;
+    background: #1db954;
+    color: #fff;
+    font-size: 1rem;
+    text-decoration: none;
+    border-radius: 20px;
+    font-weight: bold;
+    transition: background 0.3s ease, transform 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.back-btn:hover {
+    background: #1aa34a;
+    transform: scale(1.05);
+}
+
+
+@media (max-width: 768px) {
+    .list-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .list-item img {
+        margin-bottom: 10px;
+    }
+}

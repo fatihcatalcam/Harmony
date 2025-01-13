@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top Artists and Tracks</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .section {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .section-column {
+            flex: 1;
+        }
+        .artist, .track {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .artist img, .track img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-right: 20px;
+        }
+        .artist-info, .track-info {
+            flex: 1;
+        }
+        .artist-info h2, .track-info h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #333;
+        }
+        .artist-info p, .track-info p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        .artist-info a, .track-info a {
+            text-decoration: none;
+            color: #007BFF;
+        }
+        .artist-info a:hover, .track-info a:hover {
+            text-decoration: underline;
+        }
+        h1 {
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.8rem;
+        }
+        .user-profile {
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+            text-align: center;
+        }
+        .user-profile img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+        .user-profile h2 {
+            margin: 0;
+            font-size: 1.4rem;
+            color: #333;
+        }
+        .user-profile p {
+            font-size: 0.9rem;
+            color: gray;
+        }
+    </style>    
+</head>
+<body>
+    <div class="container">
+        <h1>Your Top Artists and Tracks</h1>
+
+        <!-- Kullanıcı Profili -->
+        <div class="user-profile">
+            {% if is_matched %}
+                <img src="{{ user.image }}" alt="{{ user.display_name }}">
+            {% endif %}
+            <h2>{{ user.display_name }}</h2>
+            {% if is_matched %}
+                <p>Email: {{ user.email }}</p>
+                <a href="{{ user.profile_url }}" target="_blank">View Spotify Profile</a>
+            {% else %}
+                <p style="color: gray;">This profile is anonymous until matched.</p>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <!-- Sanatçılar Sütunu -->
+            <div class="section-column">
+                <h2>Your Top Artists</h2>
+                {% for artist in artists %}
+                <div class="artist">
+                    <img src="{{ artist.image }}" alt="{{ artist.name }}">
+                    <div class="artist-info">
+                        <h2>{{ artist.name }}</h2>
+                        <p>Genres: {{ artist.genres | join(', ') }}</p>
+                        <p>Popularity: {{ artist.popularity }}</p>
+                        <p>Followers: {{ artist.followers }}</p>
+                        <a href="{{ artist.spotify_url }}" target="_blank">View on Spotify</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Şarkılar Sütunu -->
+            <div class="section-column">
+                <h2>Your Top Tracks</h2>
+                {% for track in tracks %}
+                <div class="track">
+                    <img src="{{ track.image }}" alt="{{ track.name }}">
+                    <div class="track-info">
+                        <h2>{{ track.name }}</h2>
+                        <p>Album: {{ track.album }}</p>
+                        <p>Artists: {{ track.artists | join(', ') }}</p>
+                        <a href="{{ track.spotify_url }}" target="_blank">Listen on Spotify</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

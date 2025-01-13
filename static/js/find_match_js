@@ -1,0 +1,91 @@
+document.addEventListener("DOMContentLoaded", async () => {
+    const profilesContainer = document.getElementById("profiles-container");
+  
+    try {
+      // Backend'den profilleri çek
+      const response = await fetch("/api/get_profiles");
+      const profiles = await response.json();
+  
+      if (profiles.length === 0) {
+        profilesContainer.innerHTML = `
+          <p class="text-center text-gray-500">There are no more profiles to like. Try again later!</p>
+        `;
+        return;
+      }
+  
+      // Profilleri ekrana ekle
+      profiles.forEach((profile) => {
+        const profileCard = document.createElement("div");
+        profileCard.className = "card";
+  
+        profileCard.innerHTML = `
+          <h2>${profile.display_name}</h2>
+          <p class="location">${profile.location || "Unknown Location"}</p>
+          <p class="bio">${profile.bio || "No bio provided."}</p>
+          <div class="top-songs">
+            <h3>Top Songs</h3>
+            ${
+              profile.top_tracks.length > 0
+                ? profile.top_tracks
+                    .slice(0, 3)
+                    .map(
+                      (track) => `
+              <div class="song">
+                <img alt="Album cover" src="${track.image || 'https://placehold.co/30x30'}" />
+                <p>${track.name} - ${track.artists?.join(", ") || "Unknown Artist"}</p>
+              </div>
+            `
+                    )
+                    .join("")
+                : "<p>No top tracks available.</p>"
+            }
+          </div>
+          <div class="top-artists">
+            <h3>Top Artists</h3>
+            ${
+              profile.top_artists.length > 0
+                ? profile.top_artists
+                    .slice(0, 3)
+                    .map(
+                      (artist) => `
+              <div class="artist">
+                <img alt="Artist profile" src="${artist.image || 'https://placehold.co/30x30'}" />
+                <p>${artist.name}</p>
+              </div>
+            `
+                    )
+                    .join("")
+                : "<p>No top artists available.</p>"
+            }
+          </div>
+          <div class="actions">
+            <button class="btn pass" onclick="handleDislike(${profile.id})">
+              <i class="fas fa-times"></i>
+            </button>
+            <button class="btn like" onclick="handleLike(${profile.id})">
+              <i class="fas fa-heart"></i>
+            </button>
+          </div>
+        `;
+  
+        profilesContainer.appendChild(profileCard);
+      });
+    } catch (error) {
+      console.error("Error loading profiles:", error);
+      profilesContainer.innerHTML = `
+        <p class="text-center text-gray-500">An error occurred while loading profiles. Please try again later!</p>
+      `;
+    }
+  });
+  
+  // Beğen ve geç işlevleri
+  function handleLike(profileId) {
+    alert(`Liked profile ID: ${profileId}`);
+    // Beğenme API çağrısı yapılabilir
+  }
+  
+  function handleDislike(profileId) {
+    alert(`Disliked profile ID: ${profileId}`);
+    // Geçme API çağrısı yapılabilir
+  }
+  

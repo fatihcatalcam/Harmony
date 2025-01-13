@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ user.display_name }}'s Profile</title>
+    <link rel="stylesheet" href="/static/css/profile.css">
+</head>
+<body>
+    <div class="profile-container">
+        <!-- Geri Dön Butonu -->
+        <a href="/index1" class="btn back-btn">Go Back</a>
+
+        <!-- Kullanıcı Bilgileri -->
+        <div class="user-header">
+            <img src="{{ user.profile_image }}" alt="{{ user.display_name }}">
+            <h1>{{ user.display_name }}</h1>
+        </div>
+
+        <!-- En Popüler Sanatçılar -->
+        <div class="section">
+            <h2>Top Artists</h2>
+            {% for artist in user.top_artists %}
+            <div class="list-item">
+                <img src="{{ artist.image }}" alt="{{ artist.name }}">
+                <div>
+                    <a href="{{ artist.spotify_url }}" target="_blank">{{ artist.name }}</a>
+                    <p>{{ ", ".join(artist.genres) }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- En Popüler Şarkılar -->
+        <div class="section">
+            <h2>Top Tracks</h2>
+            {% for track in user.top_tracks %}
+            <div class="list-item">
+                <img src="{{ track.image }}" alt="{{ track.name }}">
+                <div>
+                    <a href="{{ track.spotify_url }}" target="_blank">{{ track.name }}</a>
+                    <p>Album: {{ track.album }} | Artists: {{ ", ".join(track.artists) }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- En Popüler Türler -->
+        <div class="section">
+            <h2>Top Genres</h2>
+            <ul>
+                {% for genre in user.genres %}
+                <li>{{ genre }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2025 Harmony | Built with ❤️ for music lovers.</p>
+    </footer>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

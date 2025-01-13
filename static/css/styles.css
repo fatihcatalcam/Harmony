@@ -1,0 +1,123 @@
+.profile-card {
+    background: #333;
+    color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.profile-card img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+    box-shadow: 0 0 10px #1db954;
+}
+
+.profile-card h3 {
+    margin: 10px 0;
+    font-size: 1.2rem;
+}
+
+.like-btn {
+    padding: 10px 20px;
+    background: #1db954;
+    color: #fff;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.like-btn:hover {
+    background: #1aa34a;
+    transform: scale(1.05);
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #191414;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  .card {
+    background-color: #1DB954;
+    border-radius: 10px;
+    width: 200px;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    position: relative;
+    color: #191414;
+  }
+  .card h2 {
+    margin: 5px 0;
+    font-size: 1em;
+  }
+  .card p {
+    margin: 3px 0;
+    font-size: 0.8em;
+  }
+  .card .location {
+    font-size: 0.7em;
+    color: #191414;
+  }
+  .card .bio {
+    margin: 5px 0;
+    font-size: 0.7em;
+    color: #191414;
+  }
+  .card .top-songs,
+  .card .top-artists {
+    margin: 5px 0;
+  }
+  .card .top-songs img,
+  .card .top-artists img {
+    width: 30px;
+    height: 30px;
+    border-radius: 5px;
+    margin: 3px;
+  }
+  .card .top-songs .song,
+  .card .top-artists .artist {
+    display: flex;
+    align-items: center;
+    margin: 3px 0;
+  }
+  .card .top-songs .song p,
+  .card .top-artists .artist p {
+    margin-left: 5px;
+    text-align: left;
+    font-size: 0.7em;
+  }
+  .actions {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 10px;
+  }
+  .actions .btn {
+    background-color: #191414;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+  }
+  .actions .btn i {
+    color: #1DB954;
+    font-size: 1em;
+  }
+  .actions .btn.pass {
+    background-color: #e74c3c;
+  }
+  

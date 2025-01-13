@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ user.display_name }}'s Spotify Profile</title>
+</head>
+<body>
+    <h1>Welcome, {{ user.display_name }}</h1>
+    <img src="{{ user.profile_image }}" alt="Profile Picture" style="border-radius: 50%; width: 150px;">
+    <p><strong>Email:</strong> {{ user.email if user.email else "Not provided" }}</p>
+
+    <h2>Your Favorite Artists:</h2>
+    <ul>
+        {% for artist in user.top_artists %}
+        <li>
+            <img src="{{ artist.image }}" alt="{{ artist.name }}" style="width: 50px; height: 50px;">
+            <strong>{{ artist.name }}</strong> ({{ ", ".join(artist.genres) }})
+        </li>
+        {% endfor %}
+    </ul>
+
+    <h2>Your Top Tracks:</h2>
+    <ul>
+        {% for track in user.top_tracks %}
+        <li>
+            <img src="{{ track.image }}" alt="{{ track.name }}" style="width: 50px; height: 50px;">
+            <strong>{{ track.name }}</strong> by {{ ", ".join(track.artists) }}
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
