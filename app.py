@@ -184,30 +184,31 @@ def callback():
 
 @app.route("/find-profiles")
 def find_profiles():
-    # Örnek profil
-    fake_user = {
-        "display_name": "John Doe",
-        "profile_image": None,
-        "location": "New York, USA",
-        "bio": "Music lover, concert goer, and vinyl collector.",
-        "top_artists": [
-            {"name": "Artist 1", "image": None},
-            {"name": "Artist 2", "image": None},
-            {"name": "Artist 3", "image": None},
-        ],
-        "top_tracks": [
-            {"name": "Song 1", "image": None},
-            {"name": "Song 2", "image": None},
-            {"name": "Song 3", "image": None},
-        ]
-    }
-    return render_template("match.html", user=fake_user)
-
-@app.route("/find-profiles")
-def find_profiles_page():
     profiles = User.query.all()
-    print(profiles)  # Konsolda profilleri kontrol edin
-    return render_template("match.html", profiles=profiles)
+
+    if profiles and len(profiles) > 0:
+        # Gerçek veritabanı kayıtları varsa onları kullan
+        return render_template("match.html", profiles=profiles)
+    else:
+        # Veri yoksa test amaçlı “fake_user” gösterelim
+        fake_user = {
+            "display_name": "John Doe",
+            "profile_image": None,
+            "location": "New York, USA",
+            "bio": "Music lover, concert goer, and vinyl collector.",
+            "top_artists": [
+                {"name": "Artist 1", "image": None},
+                {"name": "Artist 2", "image": None},
+                {"name": "Artist 3", "image": None},
+            ],
+            "top_tracks": [
+                {"name": "Song 1", "image": None},
+                {"name": "Song 2", "image": None},
+                {"name": "Song 3", "image": None},
+            ]
+        }
+        return render_template("match.html", user=fake_user)
+
 
 @app.route("/add-test-user")
 def add_test_user():
