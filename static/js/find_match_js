@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   
     try {
       // Backend'den profilleri çek
-      const response = await fetch("/api/get_profiles");
+      const response = await fetch("http://127.0.0.1:5000/find-profiles");
       const profiles = await response.json();
   
       if (profiles.length === 0) {

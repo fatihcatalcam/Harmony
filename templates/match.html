@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Find Your Match</title>
+    <title>Harmony - Find Profiles</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -16,152 +16,136 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
             flex-direction: column;
+            min-height: 100vh;
         }
-        .profile-card {
+        .card {
             background-color: #1DB954;
             border-radius: 10px;
             width: 300px;
-            padding: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
             text-align: center;
-            position: relative;
-            color: #191414;
-            margin-bottom: 20px;
+            color: #fff;
+            margin: 15px 0;
         }
-        .profile-card h2 {
-            margin: 5px 0;
-            font-size: 1.2em;
+        .card img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 10px;
         }
-        .profile-card p {
-            margin: 3px 0;
+        .card h2 {
+            margin: 10px 0;
+            font-size: 1.5em;
+        }
+        .card p {
             font-size: 0.9em;
+            margin: 5px 0;
         }
-        .profile-card .top-artists, .profile-card .top-songs {
+        .top-artists, .top-tracks {
             margin: 10px 0;
         }
-        .profile-card .top-artists img, .profile-card .top-songs img {
-            width: 40px;
-            height: 40px;
-            border-radius: 5px;
-            margin: 3px;
+        .top-artists h3, .top-tracks h3 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
         }
-        .profile-card .top-artists .artist, .profile-card .top-songs .song {
+        .artist, .song {
             display: flex;
             align-items: center;
             margin: 5px 0;
         }
-        .profile-card .top-artists .artist p, .profile-card .top-songs .song p {
-            margin-left: 5px;
-            text-align: left;
-            font-size: 0.8em;
+        .artist img, .song img {
+            width: 40px;
+            height: 40px;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        .artist p, .song p {
+            margin: 0;
+            font-size: 0.9em;
         }
         .actions {
             display: flex;
             justify-content: space-around;
-            margin-top: 10px;
+            margin-top: 15px;
         }
-        .actions .btn {
+        .actions button {
             background-color: #191414;
             border: none;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
         }
-        .actions .btn i {
-            color: #1DB954;
-            font-size: 1.2em;
+        .actions button i {
+            font-size: 1.5em;
         }
-        .actions .btn.pass {
+        .actions button.pass {
             background-color: #e74c3c;
+        }
+        .actions button.like {
+            background-color: #1DB954;
+        }
+        .actions button:hover {
+            transform: scale(1.1);
         }
     </style>
 </head>
 <body>
     <div id="profiles-container">
-        <!-- Profiller buraya JavaScript ile yüklenecek -->
+        {% for profile in profiles %}
+        <div class="card">
+            <img src="{{ profile.profile_image or 'https://placehold.co/80x80' }}" alt="Profile Picture">
+            <h2>{{ profile.display_name }}</h2>
+            <p><strong>Top Genres:</strong> {{ profile.genres|join(', ') }}</p>
+            <div class="top-artists">
+                <h3>Top Artists</h3>
+                {% for artist in profile.top_artists[:3] %}
+                <div class="artist">
+                    <img src="{{ artist.image or 'https://placehold.co/40x40' }}" alt="{{ artist.name }}">
+                    <p>{{ artist.name }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="top-tracks">
+                <h3>Top Tracks</h3>
+                {% for track in profile.top_tracks[:3] %}
+                <div class="song">
+                    <img src="{{ track.image or 'https://placehold.co/40x40' }}" alt="{{ track.name }}">
+                    <p>{{ track.name }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="actions">
+                <button class="btn pass"><i class="fas fa-times"></i></button>
+                <button class="btn like"><i class="fas fa-heart"></i></button>
+            </div>
+        </div>
+        {% endfor %}
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", async () => {
-            const profilesContainer = document.getElementById("profiles-container");
+        document.addEventListener("DOMContentLoaded", () => {
+            const likeButtons = document.querySelectorAll(".like");
+            const passButtons = document.querySelectorAll(".pass");
 
-            // Backend'den profilleri çek
-            try {
-                const response = await fetch("/api/get_profiles");
-                const profiles = await response.json();
-
-                if (profiles.length === 0) {
-                    profilesContainer.innerHTML = "<p>No more profiles to like. Try again later!</p>";
-                    return;
-                }
-
-                // Profilleri ekrana yerleştir
-                profiles.forEach(profile => {
-                    const profileCard = document.createElement("div");
-                    profileCard.className = "profile-card";
-
-                    profileCard.innerHTML = `
-                        <h2>${profile.display_name}</h2>
-                        <div class="top-artists">
-                            <h3>Top Artists</h3>
-                            ${profile.top_artists.slice(0, 3).map(artist => `
-                                <div class="artist">
-                                    <img src="https://placehold.co/40x40" alt="${artist}">
-                                    <p>${artist}</p>
-                                </div>
-                            `).join("")}
-                        </div>
-                        <div class="top-songs">
-                            <h3>Top Songs</h3>
-                            ${profile.top_tracks.slice(0, 3).map(track => `
-                                <div class="song">
-                                    <img src="https://placehold.co/40x40" alt="${track}">
-                                    <p>${track}</p>
-                                </div>
-                            `).join("")}
-                        </div>
-                        <div class="actions">
-                            <button class="btn pass" onclick="handleDislike(${profile.id})">
-                                <i class="fas fa-times"></i>
-                            </button>
-                            <button class="btn like" onclick="handleLike(${profile.id})">
-                                <i class="fas fa-heart"></i>
-                            </button>
-                        </div>
-                    `;
-
-                    profilesContainer.appendChild(profileCard);
+            likeButtons.forEach(button => {
+                button.addEventListener("click", () => {
+                    alert("You liked this profile!");
                 });
-            } catch (error) {
-                profilesContainer.innerHTML = `<p>Error loading profiles. Please try again later.</p>`;
-                console.error("Error fetching profiles:", error);
-            }
+            });
+
+            passButtons.forEach(button => {
+                button.addEventListener("click", () => {
+                    alert("You passed this profile.");
+                });
+            });
         });
-
-        // Beğen ve geç fonksiyonları
-        function handleLike(profileId) {
-            fetch("/api/like_profile", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ profile_id: profileId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message || "Liked!");
-                location.reload(); // Sayfayı yenile
-            })
-            .catch(err => console.error("Error liking profile:", err));
-        }
-
-        function handleDislike(profileId) {
-            alert(`You passed on profile ID: ${profileId}`);
-        }
     </script>
 </body>
 </html>
