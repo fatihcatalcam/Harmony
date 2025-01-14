@@ -9,16 +9,120 @@
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #191414;
+            background: linear-gradient(135deg, #121212, #1db954);
             color: #fff;
             margin: 0;
             padding: 0;
             display: flex;
-            justify-content: center;
-            align-items: center;
             flex-direction: column;
             min-height: 100vh;
+            overflow-x: hidden;
         }
+
+        header {
+            background: #121212;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #1db954;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #1db954;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(-50px); /* Hem profil fotoğrafını hem de logout butonunu sola kaydır */
+        }
+
+        header img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px #1DB954, 0 0 20px #1DB954, 0 0 30px #1DB954; /* Neon parlama */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transform: translateX(-20px); /* 20 piksel sola kaydır */
+            }
+
+        header img:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px #1DB954, 0 0 40px #1DB954, 0 0 60px #1DB954; /* Hover sırasında daha güçlü parlama */
+            transform: scale(1.1) translateX(-20px); /* Hover sırasında da kaydırmayı koru */
+            }
+
+        .neon-profile {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px #1DB954, 0 0 20px #1DB954, 0 0 30px #1DB954;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+
+        .neon-profile:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px #1DB954, 0 0 40px #1DB954, 0 0 60px #1DB954;
+            }
+            .btn.neon-logout {
+                padding: 10px 20px;
+                background: #1DB954;
+                color: #fff;
+                border-radius: 30px;
+                font-size: 1rem;
+                text-decoration: none;
+                font-weight: bold;
+                transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+                box-shadow: 0 0 10px #1DB954, 0 0 20px #1DB954, 0 0 30px #1DB954; /* Neon parlama */
+            }
+
+            .btn.neon-logout:hover {
+                background: #1aa34a;
+                transform: scale(1.1);
+                box-shadow: 0 0 20px #1DB954, 0 0 40px #1DB954, 0 0 60px #1DB954; /* Hover sırasında daha güçlü parlama */
+            }
+       
+        
+        .btn {
+            padding: 10px 20px;
+            background: #1db954;
+            color: #fff;
+            border-radius: 30px;
+            font-size: 1rem;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            background: #1aa34a;
+            transform: scale(1.05);
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            text-align: center;
+            padding: 80px 20px 20px;
+            margin-bottom: 80px;
+        }
+
         .card {
             background-color: #1DB954;
             border-radius: 10px;
@@ -29,47 +133,50 @@
             color: #fff;
             margin: 15px 0;
         }
-        .card img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            margin-bottom: 10px;
-        }
+
         .card h2 {
             margin: 10px 0;
             font-size: 1.5em;
         }
+
         .card p {
             font-size: 0.9em;
             margin: 5px 0;
         }
+
         .top-artists, .top-tracks {
             margin: 10px 0;
         }
+
         .top-artists h3, .top-tracks h3 {
             font-size: 1.2em;
             margin-bottom: 10px;
         }
+
         .artist, .song {
             display: flex;
             align-items: center;
             margin: 5px 0;
         }
+
         .artist img, .song img {
             width: 40px;
             height: 40px;
             border-radius: 5px;
             margin-right: 10px;
         }
+
         .artist p, .song p {
             margin: 0;
             font-size: 0.9em;
         }
+
         .actions {
             display: flex;
             justify-content: space-around;
             margin-top: 15px;
         }
+
         .actions button {
             background-color: #191414;
             border: none;
@@ -82,70 +189,86 @@
             cursor: pointer;
             transition: background-color 0.3s ease, transform 0.3s ease;
         }
+
         .actions button i {
             font-size: 1.5em;
         }
+
         .actions button.pass {
             background-color: #e74c3c;
         }
+
         .actions button.like {
             background-color: #1DB954;
         }
+
         .actions button:hover {
             transform: scale(1.1);
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px 0;
+            font-size: 0.9rem;
+            background: #121212;
+            border-top: 2px solid #1db954;
+            width: 100%;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            z-index: 1000;
         }
     </style>
 </head>
 <body>
-    <div id="profiles-container">
-        {% for profile in profiles %}
-        <div class="card">
-            <img src="{{ profile.profile_image or 'https://placehold.co/80x80' }}" alt="Profile Picture">
-            <h2>{{ profile.display_name }}</h2>
-            <p><strong>Top Genres:</strong> {{ profile.genres|join(', ') }}</p>
-            <div class="top-artists">
-                <h3>Top Artists</h3>
-                {% for artist in profile.top_artists[:3] %}
-                <div class="artist">
-                    <img src="{{ artist.image or 'https://placehold.co/40x40' }}" alt="{{ artist.name }}">
-                    <p>{{ artist.name }}</p>
+    <header>
+    <h1>Harmony</h1>
+    <div class="header-right">
+        <a href="/profile">
+            <img id="profile-pic" class="neon-profile" src="{{ profile_picture_url or 'https://placehold.co/50x50' }}" alt="Profile Picture">
+        </a>
+        
+        <a href="/logout" id="logout-btn" class="btn neon-logout">Logout</a>
+
+    </div>
+</header>
+
+
+    <div class="container">
+        <div id="profiles-container">
+            {% for profile in profiles %}
+            <div class="card">
+                <h2>{{ profile.display_name }}</h2>
+                <p><strong>Top Genres:</strong> {{ profile.genres[:5] | join(', ') }}</p>
+                <div class="top-artists">
+                    <h3>Top Artists</h3>
+                    {% for artist in profile.top_artists[:3] %}
+                    <div class="artist">
+                        <img src="{{ artist.image or 'https://placehold.co/40x40' }}" alt="{{ artist.name }}">
+                        <p>{{ artist.name }}</p>
+                    </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
-            <div class="top-tracks">
-                <h3>Top Tracks</h3>
-                {% for track in profile.top_tracks[:3] %}
-                <div class="song">
-                    <img src="{{ track.image or 'https://placehold.co/40x40' }}" alt="{{ track.name }}">
-                    <p>{{ track.name }}</p>
+                <div class="top-tracks">
+                    <h3>Top Tracks</h3>
+                    {% for track in profile.top_tracks[:3] %}
+                    <div class="song">
+                        <img src="{{ track.image or 'https://placehold.co/40x40' }}" alt="{{ track.name }}">
+                        <p>{{ track.name }}</p>
+                    </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
+                <div class="actions">
+                    <button class="btn pass"><i class="fas fa-times"></i></button>
+                    <button class="btn like"><i class="fas fa-heart"></i></button>
+                </div>
             </div>
-            <div class="actions">
-                <button class="btn pass"><i class="fas fa-times"></i></button>
-                <button class="btn like"><i class="fas fa-heart"></i></button>
-            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const likeButtons = document.querySelectorAll(".like");
-            const passButtons = document.querySelectorAll(".pass");
-
-            likeButtons.forEach(button => {
-                button.addEventListener("click", () => {
-                    alert("You liked this profile!");
-                });
-            });
-
-            passButtons.forEach(button => {
-                button.addEventListener("click", () => {
-                    alert("You passed this profile.");
-                });
-            });
-        });
-    </script>
+    <footer>
+        <p>© 2025 Harmony | Built with ❤️ for music lovers.</p>
+    </footer>
 </body>
 </html>

@@ -1,123 +1,144 @@
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #191414;
+  color: #fff;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
 .profile-card {
-    background: #333;
-    color: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    text-align: center;
-    margin-bottom: 20px;
+  background: #333;
+  color: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  width: 260px; /* Kart genişliği */
+  height: auto;
+  margin-bottom: 20px;
+  transform: scale(0.95); /* Kartları biraz küçültme */
+  transition: transform 0.3s ease;
+}
+
+.profile-card:hover {
+  transform: scale(1); /* Hover ile büyüme */
 }
 
 .profile-card img {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    margin-bottom: 10px;
-    box-shadow: 0 0 10px #1db954;
+  width: 70px; /* Fotoğraf boyutu */
+  height: 70px;
+  border-radius: 50%;
+  margin-bottom: 10px;
+  box-shadow: 0 0 10px #1db954;
 }
 
 .profile-card h3 {
-    margin: 10px 0;
-    font-size: 1.2rem;
+  margin: 10px 0;
+  font-size: 1.3rem;
 }
 
-.like-btn {
-    padding: 10px 20px;
-    background: #1db954;
-    color: #fff;
-    border: none;
-    border-radius: 30px;
-    cursor: pointer;
-    transition: background 0.3s ease, transform 0.3s ease;
+.profile-card .top-artists,
+.profile-card .top-tracks {
+  margin-top: 10px;
+  text-align: left;
 }
 
-.like-btn:hover {
-    background: #1aa34a;
-    transform: scale(1.05);
+.profile-card .top-artists h4,
+.profile-card .top-tracks h4 {
+  font-size: 1rem;
+  color: #1db954;
+  margin-bottom: 5px;
 }
 
-body {
-    font-family: 'Roboto', sans-serif;
-    background-color: #191414;
-    color: #fff;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
-  .card {
-    background-color: #1DB954;
-    border-radius: 10px;
-    width: 200px;
-    padding: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    position: relative;
-    color: #191414;
-  }
-  .card h2 {
-    margin: 5px 0;
-    font-size: 1em;
-  }
-  .card p {
-    margin: 3px 0;
-    font-size: 0.8em;
-  }
-  .card .location {
-    font-size: 0.7em;
-    color: #191414;
-  }
-  .card .bio {
-    margin: 5px 0;
-    font-size: 0.7em;
-    color: #191414;
-  }
-  .card .top-songs,
-  .card .top-artists {
-    margin: 5px 0;
-  }
-  .card .top-songs img,
-  .card .top-artists img {
-    width: 30px;
-    height: 30px;
-    border-radius: 5px;
-    margin: 3px;
-  }
-  .card .top-songs .song,
-  .card .top-artists .artist {
-    display: flex;
-    align-items: center;
-    margin: 3px 0;
-  }
-  .card .top-songs .song p,
-  .card .top-artists .artist p {
-    margin-left: 5px;
-    text-align: left;
-    font-size: 0.7em;
-  }
-  .actions {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 10px;
-  }
-  .actions .btn {
-    background-color: #191414;
-    border: none;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-  }
-  .actions .btn i {
-    color: #1DB954;
-    font-size: 1em;
-  }
-  .actions .btn.pass {
-    background-color: #e74c3c;
-  }
-  
+.profile-card .artist,
+.profile-card .song {
+  display: flex;
+  align-items: center;
+  margin: 5px 0;
+}
+
+.profile-card .artist img,
+.profile-card .song img {
+  width: 30px; /* Sanatçı ve şarkı resim boyutu */
+  height: 30px;
+  border-radius: 5px;
+  margin-right: 10px;
+}
+
+.profile-card .artist p,
+.profile-card .song p {
+  font-size: 0.8em;
+  color: #fff;
+  margin: 0;
+}
+
+header img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 10px #1DB954, 0 0 20px #1DB954, 0 0 30px #1DB954; /* Neon parlama */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+header img:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px #1DB954, 0 0 40px #1DB954, 0 0 60px #1DB954; /* Hover sırasında daha güçlü parlama */
+}
+
+.neon-profile {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 10px #1DB954, 0 0 20px #1DB954, 0 0 30px #1DB954;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.neon-profile:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px #1DB954, 0 0 40px #1DB954, 0 0 60px #1DB954;
+}
+
+.profile-card .top-genres {
+  margin: 10px 0;
+  font-size: 0.9em;
+  color: #fff;
+  text-align: left;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 15px;
+}
+
+.actions .btn {
+  background-color: #191414;
+  border: none;
+  border-radius: 50%;
+  width: 40px; /* Buton genişliği */
+  height: 40px; /* Buton yüksekliği */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.actions .btn i {
+  font-size: 1.2em;
+  color: #1DB954;
+}
+
+.actions .btn.pass {
+  background-color: #e74c3c;
+}
+
+.actions .btn:hover {
+  transform: scale(1.1); /* Hover efekti */
+}

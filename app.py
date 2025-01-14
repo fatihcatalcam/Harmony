@@ -182,13 +182,30 @@ def callback():
     except Exception as e:
         return jsonify({"error": f"Error saving user data: {str(e)}"}), 500
 
+from flask import session
+
 @app.route("/find-profiles")
 def find_profiles():
+    # Oturum açmış kullanıcının ID'sini alın
+    user_id = session.get("user_id")
+    if not user_id:
+        # Eğer oturum açılmamışsa, giriş sayfasına yönlendirin veya hata gösterin
+        return redirect("/login")
+
+    # Oturum açmış kullanıcıyı veritabanından alın
+    current_user = User.query.get(user_id)
+    profile_picture_url = current_user.profile_image if current_user else None
+
+    # Tüm kullanıcı profillerini alın
     profiles = User.query.all()
 
     if profiles and len(profiles) > 0:
-        # Gerçek veritabanı kayıtları varsa onları kullan
-        return render_template("match.html", profiles=profiles)
+        # Gerçek veritabanı kayıtlarını kullanın
+        return render_template(
+            "match.html",
+            profiles=profiles,
+            profile_picture_url=profile_picture_url
+        )
     else:
         # Veri yoksa test amaçlı “fake_user” gösterelim
         fake_user = {
@@ -207,7 +224,12 @@ def find_profiles():
                 {"name": "Song 3", "image": None},
             ]
         }
-        return render_template("match.html", user=fake_user)
+        return render_template(
+            "match.html",
+            profiles=[],
+            user=fake_user,
+            profile_picture_url=profile_picture_url
+        )
 
 
 @app.route("/add-test-user")
@@ -262,7 +284,7 @@ def get_profiles():
             "display_name": profile.display_name,
             "top_artists": [artist["name"] for artist in (profile.top_artists or [])[:3]],
             "top_tracks": [track["name"] for track in (profile.top_tracks or [])[:3]],
-            "genres": profile.genres[:3] if profile.genres else [],
+            "genres": profile.genres[:5] if profile.genres else [],  # İlk 5 tür
             "profile_image": profile.profile_image or "https://placehold.co/80x80",
         }
         for profile in profiles

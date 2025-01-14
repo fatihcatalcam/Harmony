@@ -43,13 +43,49 @@
             height: 50px;
             border-radius: 50%;
             cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s ease;
-        }
+            box-shadow: 0 0 10px #1DB954, 0 0 20px #1DB954, 0 0 30px #1DB954; /* Neon parlama */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transform: translateX(-20px); /* 20 piksel sola kaydır */
+            }
 
         header img:hover {
             transform: scale(1.1);
+            box-shadow: 0 0 20px #1DB954, 0 0 40px #1DB954, 0 0 60px #1DB954; /* Hover sırasında daha güçlü parlama */
+            transform: scale(1.1) translateX(-20px); /* Hover sırasında da kaydırmayı koru */
+            }
+
+        .neon-profile {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px #1DB954, 0 0 20px #1DB954, 0 0 30px #1DB954;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+
+        .neon-profile:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px #1DB954, 0 0 40px #1DB954, 0 0 60px #1DB954;
+            }
+
+        .btn.neon-logout {
+            padding: 10px 20px;
+            background: #1DB954;
+            color: #fff;
+            border-radius: 30px;
+            font-size: 1rem;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 0 10px #1DB954, 0 0 20px #1DB954, 0 0 30px #1DB954; /* Neon parlama */
         }
+
+        .btn.neon-logout:hover {
+            background: #1aa34a;
+            transform: scale(1.1);
+            box-shadow: 0 0 20px #1DB954, 0 0 40px #1DB954, 0 0 60px #1DB954; /* Hover sırasında daha güçlü parlama */
+        }
+
 
         .btn {
             padding: 10px 20px;
@@ -108,7 +144,8 @@
         <h1>Harmony</h1>
         <div class="header-right">
             <img id="profile-pic" src="{{ profile_picture_url }}" alt="Profile">
-            <a href="/logout" id="logout-btn" class="btn">Logout</a>
+            <a href="/logout" id="logout-btn" class="btn neon-logout">Logout</a>
+
         </div>
     </header>
 
