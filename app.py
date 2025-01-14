@@ -231,6 +231,35 @@ def find_profiles():
             profile_picture_url=profile_picture_url
         )
 
+@app.route('/api/like_profile', methods=['POST'])
+def like_profile():
+    current_user_id = session.get("user_id")
+    if not current_user_id:
+        return jsonify({"error": "User not logged in"}), 401
+
+    data = request.get_json()
+    profile_id = data.get("profile_id")
+
+    if not profile_id:
+        return jsonify({"error": "Profile ID is required"}), 400
+
+    # Check if the user has already liked this profile
+    existing_like = Like.query.filter_by(from_user_id=current_user_id, to_user_id=profile_id).first()
+    if existing_like:
+        return jsonify({"message": "Profile already liked."}), 200
+
+    # Create a new like entry
+    new_like = Like(from_user_id=current_user_id, to_user_id=profile_id)
+    db.session.add(new_like)
+    db.session.commit()
+
+    # Check for a mutual like
+    mutual_like = Like.query.filter_by(from_user_id=profile_id, to_user_id=current_user_id).first()
+    if mutual_like:
+        return jsonify({"message": "It's a match!"}), 200
+
+    return jsonify({"message": "Profile liked!"}), 200
+
 
 @app.route("/add-test-user")
 def add_test_user():
