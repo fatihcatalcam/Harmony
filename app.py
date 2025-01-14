@@ -263,36 +263,46 @@ def index1():
 
 @app.route('/api/get_profiles')
 def get_profiles():
+    # Get the current logged-in user's ID from the session
     current_user_id = session.get("user_id")
     if not current_user_id:
+        # If no user is logged in, return an error response
         return jsonify({"error": "User not logged in"}), 401
 
-    # Fetch users already liked
+    # Fetch IDs of users already liked by the current user
     liked_profiles = Like.query.filter_by(from_user_id=current_user_id).with_entities(Like.to_user_id).all()
-    liked_profile_ids = [profile_id[0] for profile_id in liked_profiles]
+    liked_profile_ids = [profile_id[0] for profile_id in liked_profiles]  # Extracting IDs from query results
 
-    # Fetch profiles excluding the current user and already liked users
-    profiles = User.query.filter(User.id != current_user_id, ~User.id.in_(liked_profile_ids)).all()
+    # Fetch profiles excluding the current user and the ones they already liked
+    profiles = User.query.filter(
+        User.id != current_user_id,  # Exclude the current user
+        ~User.id.in_(liked_profile_ids)  # Exclude users already liked
+    ).all()
 
+    # If no profiles are found, return an empty list
     if not profiles:
-        print("No profiles found to display for the current user.")  # Debugging line
+        print("No profiles found to display for the current user.")  # Debugging information
         return jsonify([])
 
+    # Prepare the profile data for the response
     profiles_data = [
         {
             "id": profile.id,
             "display_name": profile.display_name,
-            "top_artists": [artist["name"] for artist in (profile.top_artists or [])[:3]],
-            "top_tracks": [track["name"] for track in (profile.top_tracks or [])[:3]],
-            "genres": profile.genres[:5] if profile.genres else [],  # İlk 5 tür
-            "profile_image": profile.profile_image or "https://placehold.co/80x80",
+            "top_artists": [artist["name"] for artist in (profile.top_artists or [])[:3]],  # Top 3 artists
+            "top_tracks": [track["name"] for track in (profile.top_tracks or [])[:3]],  # Top 3 tracks
+            "genres": profile.genres[:5] if profile.genres else [],  # Top 5 genres
+            "profile_image": profile.profile_image or "https://placehold.co/80x80",  # Default image if none exists
         }
         for profile in profiles
     ]
-    print(f"Current user ID: {current_user_id}")
-    print(f"Liked profiles: {liked_profile_ids}")
-    print(f"All profiles excluding current user and liked profiles: {[p.display_name for p in profiles]}")
 
+    # Debugging logs for better clarity
+    print(f"Current user ID: {current_user_id}")  # Log current user ID
+    print(f"Liked profile IDs: {liked_profile_ids}")  # Log IDs of liked profiles
+    print(f"Profiles fetched for display: {[p.display_name for p in profiles]}")  # Log fetched profile names
+
+    # Return the profiles as a JSON response
     return jsonify(profiles_data)
 
 

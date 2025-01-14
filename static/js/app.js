@@ -58,6 +58,86 @@ if (logoutBtn) {
     });
 }
 
+async function loadProfilesToLike() {
+    try {
+        const response = await fetch("/api/get_profiles");
+        if (!response.ok) {
+            throw new Error("Failed to fetch profiles");
+        }
+        const profiles = await response.json();
+
+        if (!profiles || profiles.length === 0) {
+            profilesContainer.innerHTML = "<p>No profiles available to like! Try again later.</p>";
+            return;
+        }
+
+        profilesContainer.innerHTML = ""; // Clear existing profiles
+        profiles.forEach((profile) => {
+            const profileCard = `
+                <div class="profile-card">
+                    <img src="${profile.profile_image}" alt="Profile Picture">
+                    <h3>${profile.display_name}</h3>
+                    <p><strong>Top Artists:</strong> ${profile.top_artists.join(", ")}</p>
+                    <p><strong>Top Genres:</strong> ${profile.genres.join(", ")}</p>
+                    <p><strong>Top Tracks:</strong> ${profile.top_tracks.join(", ")}</p>
+                    <button class="like-btn" data-profile-id="${profile.id}">Like</button>
+                    <button class="btn pass-btn" data-profile-id="${profile.id}">Pass</button>
+                </div>`;
+            profilesContainer.innerHTML += profileCard;
+        });
+    } catch (error) {
+        profilesContainer.innerHTML = "<p>Error loading profiles. Please try again later.</p>";
+        console.error("Error fetching profiles:", error);
+    }
+}
+
+profilesContainer.addEventListener("click", (e) => {
+    const target = e.target;
+
+    // Like Button Clicked
+    if (target.classList.contains("like-btn")) {
+        const profileId = target.dataset.profileId;
+        likeProfile(profileId);
+    }
+
+    // Pass Button Clicked
+    if (target.classList.contains("pass-btn")) {
+        const profileId = target.dataset.profileId;
+        passProfile(profileId);
+    }
+});
+
+async function likeProfile(profileId) {
+    try {
+        const response = await fetch("/api/like_profile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ profile_id: profileId }),
+        });
+
+        const result = await response.json();
+        if (result.message === "It's a match!") {
+            alert("You've got a match! 🎉");
+        } else if (result.message === "Profile liked!") {
+            alert("Profile liked!");
+        } else {
+            alert(result.error || "Something went wrong.");
+        }
+
+        loadProfilesToLike(); // Reload profiles
+    } catch (error) {
+        console.error("Error liking profile:", error);
+        alert("An error occurred while liking the profile. Please try again.");
+    }
+}
+
+function passProfile(profileId) {
+    alert(`You passed on profile ID: ${profileId}`);
+    loadProfilesToLike(); // Reload profiles
+}
+
+
+
 // Find Your Match Button Functionality
 if (findMatchBtn) {
     findMatchBtn.addEventListener("click", async () => {
@@ -87,21 +167,6 @@ if (findMatchBtn) {
     });
 }
 
-// Dynamic Background Movement
-document.body.addEventListener("mousemove", (e) => {
-    const x = (e.clientX / window.innerWidth - 0.5) * 10;
-    const y = (e.clientY / window.innerHeight - 0.5) * 10;
-    document.body.style.backgroundPosition = `${x}px ${y}px`;
-});
-
-// Back Button Functionality
-const backButton = document.getElementById("back-btn");
-if (backButton) {
-    backButton.addEventListener("click", () => {
-        window.location.href = "/dashboard";
-    });
-}
-
 // Scroll-Based Background Darkening Effect
 window.addEventListener("scroll", () => {
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
@@ -110,73 +175,3 @@ window.addEventListener("scroll", () => {
     document.body.style.background = `linear-gradient(135deg, rgba(29, 185, 84, ${1 - opacity}), rgba(25, 20, 20, ${1}))`;
 });
 
-async function loadProfilesToLike() {
-    try {
-        const response = await fetch("/api/get_profiles");
-        const profiles = await response.json();
-
-        if (!profiles || profiles.length === 0) {
-            profilesContainer.innerHTML = "<p>No profiles available to like! Try again later.</p>";
-            return;
-        }
-
-        profilesContainer.innerHTML = ""; // Clear existing profiles
-        profiles.forEach((profile) => {
-            const profileCard = `
-                <div class="profile-card">
-                    <img src="${profile.profile_image}" alt="Profile Picture">
-                    <h3>${profile.display_name}</h3>
-                    <p><strong>Top Artists:</strong> ${profile.top_artists.join(", ")}</p>
-                    <p><strong>Top Genres:</strong> ${profile.genres.join(", ")}</p>
-                    <p><strong>Top Tracks:</strong> ${profile.top_tracks.join(", ")}</p>
-                    <button class="like-btn" onclick="likeProfile(${profile.id})">Like</button>
-                    <button class="btn pass-btn" onclick="passProfile(${profile.id})">Pass</button>
-                </div>`;
-            profilesContainer.innerHTML += profileCard;
-        });
-    } catch (error) {
-        profilesContainer.innerHTML = "<p>Error loading profiles. Please try again later.</p>";
-        console.error("Error fetching profiles:", error);
-    }
-}
-
-
-// Like a Profile
-async function likeProfile(profileId) {
-    try {
-        const response = await fetch("/api/like_profile", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ profile_id: profileId }),
-        });
-        const result = await response.json();
-
-        if (result.message === "It's a match!") {
-            alert("You've got a match! 🎉");
-        } else if (result.message === "Profile liked!") {
-            alert("Profile liked!");
-        } else {
-            alert(result.error || "Something went wrong.");
-        }
-
-        loadProfilesToLike(); // Reload profiles after liking
-    } catch (error) {
-        console.error("Error liking profile:", error);
-        alert("An error occurred while liking the profile. Please try again.");
-    }
-}
-
-// Pass a Profile
-function passProfile(profileId) {
-    alert(`You passed on profile ID: ${profileId}`);
-    loadProfilesToLike(); // Reload profiles after passing
-}
-
-// Event Listener for 'No Matches Found' Button
-const noMatchesBtn = document.getElementById("no-matches-btn");
-if (noMatchesBtn) {
-    noMatchesBtn.addEventListener("click", () => {
-        const userId = noMatchesBtn.dataset.userId;
-        loadProfilesToLike(userId);
-    });
-}
