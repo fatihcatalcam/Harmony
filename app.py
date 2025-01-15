@@ -100,29 +100,48 @@ def callback():
     }
 
     try:
-        token_response = requests.post(token_url, data=token_data).json()
-        access_token = token_response.get("access_token")
+        token_response = requests.post(token_url, data=token_data)
+        print("Token Response Status Code:", token_response.status_code)
+        print("Token Response Content:", token_response.text)
+
+        if token_response.status_code != 200:
+            raise ValueError("Failed to fetch token")
+
+        token_response_json = token_response.json()
+        access_token = token_response_json.get("access_token")
         if not access_token:
-            raise ValueError("Failed to fetch access token")
+            raise ValueError("No access token in the response")
+
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": f"Error fetching access token: {str(e)}"}), 500
 
     headers = {"Authorization": f"Bearer {access_token}"}
 
     try:
-        # Kullanıcı profilini alma
+        # Fetch user profile
         user_profile_url = "https://api.spotify.com/v1/me"
-        user_profile_response = requests.get(user_profile_url, headers=headers).json()
+        user_profile_response = requests.get(user_profile_url, headers=headers)
+        print("User Profile Response Status Code:", user_profile_response.status_code)
+        print("User Profile Response Content:", user_profile_response.text)
 
-        spotify_id = user_profile_response.get("id")
-        display_name = user_profile_response.get("display_name")
-        profile_image = user_profile_response.get("images", [{}])[0].get("url")
-        email = user_profile_response.get("email")
+        if user_profile_response.status_code != 200:
+            raise ValueError("Failed to fetch user profile")
+
+        user_profile = user_profile_response.json()
+
+        spotify_id = user_profile.get("id")
+        display_name = user_profile.get("display_name")
+        profile_image = (
+            user_profile.get("images")[0].get("url")
+            if user_profile.get("images")
+            else "https://placehold.co/80x80"
+        )
+        email = user_profile.get("email")
 
         if not spotify_id or not display_name:
             raise ValueError("Incomplete user data from Spotify")
 
-        # Kullanıcıyı veritabanına kaydet veya güncelle
+        # Add or update the user in the database
         user = User.query.filter_by(spotify_id=spotify_id).first()
         if not user:
             user = User(
@@ -132,39 +151,55 @@ def callback():
                 email=email,
             )
             db.session.add(user)
+            print(f"New user added: {display_name} ({spotify_id})")
         else:
             user.display_name = display_name
             user.profile_image = profile_image
             user.email = email
+            print(f"Existing user updated: {display_name} ({spotify_id})")
 
-        # Kullanıcının en iyi sanatçılarını alma
+        # Fetch top artists
         top_artists_url = "https://api.spotify.com/v1/me/top/artists"
-        top_artists_response = requests.get(top_artists_url, headers=headers).json()
+        top_artists_response = requests.get(top_artists_url, headers=headers)
+        print("Top Artists Response Status Code:", top_artists_response.status_code)
+        print("Top Artists Response Content:", top_artists_response.text)
+
+        if top_artists_response.status_code != 200:
+            raise ValueError("Failed to fetch top artists")
+
+        top_artists_data = top_artists_response.json()
         top_artists = [
             {
-                "name": artist["name"],
-                "genres": artist["genres"],
-                "image": artist["images"][0]["url"] if artist.get("images") else "/static/default_artist.png",
-                "spotify_url": artist["external_urls"]["spotify"],
+                "name": artist.get("name", "Unknown Artist"),
+                "genres": artist.get("genres", []),
+                "image": artist.get("images", [{}])[0].get("url", "/static/default_artist.png"),
+                "spotify_url": artist.get("external_urls", {}).get("spotify", "#"),
             }
-            for artist in top_artists_response.get("items", [])[:10]
+            for artist in top_artists_data.get("items", [])[:10]
         ]
 
-        # Kullanıcının en iyi şarkılarını alma
+        # Fetch top tracks
         top_tracks_url = "https://api.spotify.com/v1/me/top/tracks"
-        top_tracks_response = requests.get(top_tracks_url, headers=headers).json()
+        top_tracks_response = requests.get(top_tracks_url, headers=headers)
+        print("Top Tracks Response Status Code:", top_tracks_response.status_code)
+        print("Top Tracks Response Content:", top_tracks_response.text)
+
+        if top_tracks_response.status_code != 200:
+            raise ValueError("Failed to fetch top tracks")
+
+        top_tracks_data = top_tracks_response.json()
         top_tracks = [
             {
-                "name": track["name"],
-                "album": track["album"]["name"],
-                "artists": [artist["name"] for artist in track["artists"]],
-                "image": track["album"]["images"][0]["url"] if track["album"].get("images") else "/static/default_album.png",
-                "spotify_url": track["external_urls"]["spotify"],
+                "name": track.get("name", "Unknown Track"),
+                "album": track.get("album", {}).get("name", "Unknown Album"),
+                "artists": [artist.get("name", "Unknown Artist") for artist in track.get("artists", [])],
+                "image": track.get("album", {}).get("images", [{}])[0].get("url", "/static/default_album.png"),
+                "spotify_url": track.get("external_urls", {}).get("spotify", "#"),
             }
-            for track in top_tracks_response.get("items", [])[:10]
+            for track in top_tracks_data.get("items", [])[:10]
         ]
 
-        # Türler
+        # Extract genres
         genres = list(set(genre for artist in top_artists for genre in artist["genres"]))
 
         user.top_artists = top_artists
@@ -173,7 +208,7 @@ def callback():
 
         db.session.commit()
 
-        # Oturum bilgilerini güncelle
+        # Update session
         session["user_logged_in"] = True
         session["spotify_id"] = spotify_id
         session["profile_picture_url"] = profile_image
@@ -182,7 +217,10 @@ def callback():
         return redirect(url_for("index1"))
 
     except Exception as e:
+        print(f"Error saving user data: {str(e)}")
         return jsonify({"error": f"Error saving user data: {str(e)}"}), 500
+
+
 
 from flask import session
 
@@ -275,7 +313,7 @@ def get_likes():
     ]
     return jsonify(data)
 
-
+# http://127.0.0.1:5000/populate-database
 @app.route("/populate-database")
 def populate_database():
     fake = Faker()
@@ -307,6 +345,11 @@ def add_likes():
     likes = [
         Like(from_user_id=10, to_user_id=1),  # Alice likes Bob
         Like(from_user_id=15, to_user_id=1),
+        Like(from_user_id=18, to_user_id=1),
+        Like(from_user_id=19, to_user_id=1),
+        Like(from_user_id=20, to_user_id=1),
+        Like(from_user_id=21, to_user_id=1),
+     
     ]
     db.session.add_all(likes)
     db.session.commit()
@@ -314,9 +357,11 @@ def add_likes():
 
 @app.route('/api/matches/<int:user_id>')
 def get_matches(user_id):
-    matches = db.session.query(Like).join(
-        Like,
-        (Like.from_user_id == user_id) & (Like.to_user_id == Like.from_user_id)
+    matches = db.session.query(Like).filter(
+        Like.from_user_id == user_id,
+        Like.to_user_id.in_(
+            db.session.query(Like.from_user_id).filter(Like.to_user_id == user_id)
+        )
     ).all()
 
     data = [
@@ -328,6 +373,7 @@ def get_matches(user_id):
         for match in matches
     ]
     return jsonify(data)
+
 
 
 
