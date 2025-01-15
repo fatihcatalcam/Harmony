@@ -123,3 +123,41 @@ function passProfile(profileId) {
     currentProfileIndex++;
     showProfile(currentProfileIndex);
 }
+
+// Function to Show Match Overlay
+function showMatchOverlay() {
+    const overlay = document.getElementById("match-overlay");
+    overlay.classList.add("show"); // Overlay'i görünür yap
+
+    // 3 saniye sonra overlay'i gizle ve sonraki profile geç
+    setTimeout(() => {
+        overlay.classList.remove("show");
+        currentProfileIndex++;
+        showProfile(currentProfileIndex);
+    }, 3000);
+}
+
+// Like Profile Functionality
+async function likeProfile(profileId) {
+    try {
+        const response = await fetch("/api/like_profile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ profile_id: profileId }),
+        });
+
+        if (!response.ok) throw new Error("Failed to like profile");
+        const result = await response.json();
+
+        if (result.message === "It's a match!") {
+            showMatchOverlay(); // MATCH! göster
+        } else {
+            alert("Profile liked!");
+            currentProfileIndex++;
+            showProfile(currentProfileIndex);
+        }
+    } catch (error) {
+        console.error("Error liking profile:", error);
+        alert("An error occurred. Please try again.");
+    }
+}

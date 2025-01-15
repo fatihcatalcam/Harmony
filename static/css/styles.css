@@ -160,3 +160,45 @@ header img:hover {
 .actions .btn:hover {
   transform: scale(1.1); /* Hover effect */
 }
+
+/* Match Overlay */
+.match-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.8); /* Şeffaf beyaz */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 9999; /* Diğer her şeyin üstünde */
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.match-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.match-text {
+  font-size: 4rem;
+  font-weight: bold;
+  color: #1DB954; /* Spotify yeşili */
+  text-shadow: 0px 0px 20px rgba(29, 185, 84, 0.7), 0px 0px 40px rgba(29, 185, 84, 0.5);
+  animation: pulse 1.5s infinite;
+}
+
+/* Animasyon */
+@keyframes pulse {
+  0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+  }
+  50% {
+      transform: scale(1.1);
+      opacity: 0.8;
+  }
+}

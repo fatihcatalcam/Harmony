@@ -348,8 +348,11 @@ def add_likes():
         Like(from_user_id=18, to_user_id=1),
         Like(from_user_id=19, to_user_id=1),
         Like(from_user_id=20, to_user_id=1),
-        Like(from_user_id=21, to_user_id=1),
-     
+        Like(from_user_id=4, to_user_id=1),
+        Like(from_user_id=5, to_user_id=32),  # Alice likes Bob
+        Like(from_user_id=6, to_user_id=32),
+        Like(from_user_id=7, to_user_id=32),
+        Like(from_user_id=8, to_user_id=32),
     ]
     db.session.add_all(likes)
     db.session.commit()
