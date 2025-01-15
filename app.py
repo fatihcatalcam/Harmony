@@ -274,10 +274,6 @@ def find_profiles():
 
 
 @app.route('/api/like_profile', methods=['POST'])
-def check_match(user_id, other_user_id):
-    like_from_user = Like.query.filter_by(from_user_id=user_id, to_user_id=other_user_id).first()
-    like_from_other = Like.query.filter_by(from_user_id=other_user_id, to_user_id=user_id).first()
-    return like_from_user is not None and like_from_other is not None
 def like_profile():
     current_user_id = session.get("user_id")
     if not current_user_id:
@@ -289,21 +285,28 @@ def like_profile():
     if not profile_id:
         return jsonify({"error": "Profile ID is required"}), 400
 
-    # Check if the user has already liked this profile
+    # Beğeni zaten varsa hata döndürme
     existing_like = Like.query.filter_by(from_user_id=current_user_id, to_user_id=profile_id).first()
     if existing_like:
         return jsonify({"message": "Profile already liked."}), 200
 
-    # Create a new like entry
+    # Yeni beğeniyi ekle
     new_like = Like(from_user_id=current_user_id, to_user_id=profile_id)
     db.session.add(new_like)
     db.session.commit()
 
-    # Check for a mutual like
+    # Karşılıklı beğenme kontrolü
     if check_match(current_user_id, profile_id):
         return jsonify({"message": "It's a match!"}), 200
 
     return jsonify({"message": "Profile liked!"}), 200
+
+def check_match(user_id, other_user_id):
+    # Kullanıcıların birbirini beğenip beğenmediğini kontrol et
+    like_from_user = Like.query.filter_by(from_user_id=user_id, to_user_id=other_user_id).first()
+    like_from_other = Like.query.filter_by(from_user_id=other_user_id, to_user_id=user_id).first()
+    # Eğer iki tarafta birbirini beğendiyse, eşleşme var
+    return like_from_user is not None and like_from_other is not None
 
 
 
@@ -367,7 +370,6 @@ def add_likes():
 
 @app.route('/api/matches/<int:user_id>')
 def get_matches(user_id):
-    # Karşılıklı beğenileri sorgula
     matches = db.session.query(User).join(
         Like, User.id == Like.from_user_id
     ).filter(
@@ -379,7 +381,6 @@ def get_matches(user_id):
         ).exists()
     ).all()
 
-    # Eşleşme verilerini döndür
     matches_data = [
         {
             "id": match.id,
@@ -404,7 +405,7 @@ def index1():
     if not user:
         return redirect(url_for("home"))
 
-    # Matches sorgusu
+    # Kullanıcının eşleşmelerini sorgula
     matches = db.session.query(User).join(
         Like, (Like.to_user_id == User.id)
     ).filter(
@@ -418,9 +419,25 @@ def index1():
         "index1.html",
         user_logged_in=user_logged_in,
         profile_picture_url=profile_picture_url,
-        user=user,
         matches=matches
     )
+
+
+@app.route("/profile/<int:user_id>")
+def view_profile(user_id):
+    # Kullanıcıyı ID ile bul
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    return render_template(
+        "profile.html",
+        user=user,
+        top_artists=user.top_artists,
+        top_tracks=user.top_tracks,
+        genres=user.genres,
+    )
+
 
 
 
