@@ -271,6 +271,12 @@ def find_profiles():
             profile_picture_url=profile_picture_url
         )
 
+# Yardımcı Fonksiyonlar
+def check_match(user_id, other_user_id):
+    like_from_user = Like.query.filter_by(from_user_id=user_id, to_user_id=other_user_id).first()
+    like_from_other = Like.query.filter_by(from_user_id=other_user_id, to_user_id=user_id).first()
+    return like_from_user is not None and like_from_other is not None
+
 @app.route('/api/like_profile', methods=['POST'])
 def like_profile():
     current_user_id = session.get("user_id")
@@ -294,12 +300,11 @@ def like_profile():
     db.session.commit()
 
     # Check for a mutual like
-    mutual_like = Like.query.filter_by(from_user_id=profile_id, to_user_id=current_user_id).first()
-    if mutual_like:
-        # Return a response indicating a match
-        return jsonify({"message": "It's a match!", "match": True}), 200
+    if check_match(current_user_id, profile_id):
+        return jsonify({"message": "It's a match!"}), 200
 
-    return jsonify({"message": "Profile liked!", "match": False}), 200
+    return jsonify({"message": "Profile liked!"}), 200
+
 
 
 @app.route('/api/get_likes')
@@ -362,22 +367,29 @@ def add_likes():
 
 @app.route('/api/matches/<int:user_id>')
 def get_matches(user_id):
-    matches = db.session.query(Like).filter(
-        Like.from_user_id == user_id,
-        Like.to_user_id.in_(
-            db.session.query(Like.from_user_id).filter(Like.to_user_id == user_id)
-        )
+    # Karşılıklı beğenileri sorgula
+    matches = db.session.query(User).join(
+        Like, User.id == Like.from_user_id
+    ).filter(
+        Like.to_user_id == user_id
+    ).filter(
+        db.session.query(Like).filter(
+            Like.from_user_id == user_id,
+            Like.to_user_id == User.id
+        ).exists()
     ).all()
 
-    data = [
+    # Eşleşme verilerini döndür
+    matches_data = [
         {
-            "user": match.from_user_id,
-            "matched_with": match.to_user_id,
-            "created_at": match.created_at
+            "id": match.id,
+            "display_name": match.display_name,
+            "profile_image": match.profile_image,
         }
         for match in matches
     ]
-    return jsonify(data)
+    return jsonify(matches_data)
+
 
 
 

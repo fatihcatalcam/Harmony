@@ -158,21 +158,23 @@
         <div id="profiles-container"></div>
     </div>
     
-    <div class="matches">
-        {% if matches %}
-          <h3>Your Matches:</h3>
-          <ul>
+<div class="matches">
+    {% if matches %}
+        <h3>Your Matches:</h3>
+        <ul>
             {% for match in matches %}
-              <li class="match-item">
-                <img src="{{ match.profile_image }}" alt="{{ match.display_name }}" />
-                <span>{{ match.display_name }}</span>
-              </li>
+                <li class="match-item">
+                    <img src="{{ match.profile_image }}" alt="{{ match.display_name }}" />
+                    <span>{{ match.display_name }}</span>
+                </li>
             {% endfor %}
-          </ul>
-        {% else %}
-          <p>No matches found. Try liking more profiles!</p>
-        {% endif %}
-      </div>
+        </ul>
+    {% else %}
+        <p>No matches found. Try liking more profiles!</p>
+    {% endif %}
+</div>
+
+    
       
 
     <footer>
