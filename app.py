@@ -290,6 +290,7 @@ def index1():
         user=user
     )
 
+
 @app.route('/api/get_profiles')
 def get_profiles():
     # Get the current logged-in user's ID from the session

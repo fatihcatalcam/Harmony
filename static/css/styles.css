@@ -1,3 +1,4 @@
+/* General Styles */
 body {
   font-family: 'Roboto', sans-serif;
   background-color: #191414;
@@ -10,6 +11,7 @@ body {
   height: 100vh;
 }
 
+/* Profile Card Styles */
 .profile-card {
   background: #333;
   color: #fff;
@@ -17,19 +19,19 @@ body {
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   text-align: center;
-  width: 260px; /* Kart genişliği */
+  width: 260px; /* Card Width */
   height: auto;
   margin-bottom: 20px;
-  transform: scale(0.95); /* Kartları biraz küçültme */
+  transform: scale(0.95); /* Slightly smaller by default */
   transition: transform 0.3s ease;
 }
 
 .profile-card:hover {
-  transform: scale(1); /* Hover ile büyüme */
+  transform: scale(1); /* Slight zoom on hover */
 }
 
 .profile-card img {
-  width: 70px; /* Fotoğraf boyutu */
+  width: 70px; /* Profile image size */
   height: 70px;
   border-radius: 50%;
   margin-bottom: 10px;
@@ -39,6 +41,13 @@ body {
 .profile-card h3 {
   margin: 10px 0;
   font-size: 1.3rem;
+}
+
+.profile-card .top-genres {
+  margin: 10px 0;
+  font-size: 0.9em;
+  color: #fff;
+  text-align: left;
 }
 
 .profile-card .top-artists,
@@ -63,7 +72,7 @@ body {
 
 .profile-card .artist img,
 .profile-card .song img {
-  width: 30px; /* Sanatçı ve şarkı resim boyutu */
+  width: 30px; /* Artist and track image size */
   height: 30px;
   border-radius: 5px;
   margin-right: 10px;
@@ -76,20 +85,22 @@ body {
   margin: 0;
 }
 
+/* Header Styles */
 header img {
   width: 50px;
   height: 50px;
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 0 10px #1DB954, 0 0 20px #1DB954, 0 0 30px #1DB954; /* Neon parlama */
+  box-shadow: 0 0 10px #1DB954, 0 0 20px #1DB954, 0 0 30px #1DB954; /* Neon glow */
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 header img:hover {
   transform: scale(1.1);
-  box-shadow: 0 0 20px #1DB954, 0 0 40px #1DB954, 0 0 60px #1DB954; /* Hover sırasında daha güçlü parlama */
+  box-shadow: 0 0 20px #1DB954, 0 0 40px #1DB954, 0 0 60px #1DB954; /* Stronger glow on hover */
 }
 
+/* Neon Profile Glow */
 .neon-profile {
   width: 50px;
   height: 50px;
@@ -104,13 +115,7 @@ header img:hover {
   box-shadow: 0 0 20px #1DB954, 0 0 40px #1DB954, 0 0 60px #1DB954;
 }
 
-.profile-card .top-genres {
-  margin: 10px 0;
-  font-size: 0.9em;
-  color: #fff;
-  text-align: left;
-}
-
+/* Button Styles */
 .actions {
   display: flex;
   justify-content: space-around;
@@ -121,8 +126,8 @@ header img:hover {
   background-color: #191414;
   border: none;
   border-radius: 50%;
-  width: 40px; /* Buton genişliği */
-  height: 40px; /* Buton yüksekliği */
+  width: 40px; /* Button width */
+  height: 40px; /* Button height */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -140,5 +145,5 @@ header img:hover {
 }
 
 .actions .btn:hover {
-  transform: scale(1.1); /* Hover efekti */
+  transform: scale(1.1); /* Slight zoom on hover */
 }
