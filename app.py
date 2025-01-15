@@ -271,13 +271,13 @@ def find_profiles():
             profile_picture_url=profile_picture_url
         )
 
-# Yardımcı Fonksiyonlar
+
+
+@app.route('/api/like_profile', methods=['POST'])
 def check_match(user_id, other_user_id):
     like_from_user = Like.query.filter_by(from_user_id=user_id, to_user_id=other_user_id).first()
     like_from_other = Like.query.filter_by(from_user_id=other_user_id, to_user_id=user_id).first()
     return like_from_user is not None and like_from_other is not None
-
-@app.route('/api/like_profile', methods=['POST'])
 def like_profile():
     current_user_id = session.get("user_id")
     if not current_user_id:
