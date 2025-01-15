@@ -19,18 +19,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Login Button Hover Animation
-if (loginBtn) {
-    loginBtn.addEventListener("mouseover", () => {
-        loginBtn.style.boxShadow = "0 4px 15px rgba(29, 185, 84, 0.5)";
-        loginBtn.style.transform = "scale(1.1)";
-    });
+// Redirect to Chat on "Message" Button Click
+document.addEventListener("click", (e) => {
+    if (e.target.classList.contains("message-btn")) {
+        const userId = e.target.dataset.userId; // Ensure `data-user-id` exists
+        if (userId) {
+            window.location.href = `/messages/${userId}`;
+        } else {
+            console.error("User ID is not defined in the button's dataset.");
+        }
+    }
+});
 
-    loginBtn.addEventListener("mouseout", () => {
-        loginBtn.style.boxShadow = "none";
-        loginBtn.style.transform = "scale(1)";
-    });
-}
 
 // Profile Picture Click Navigation
 if (profilePic) {
@@ -58,58 +58,104 @@ if (logoutBtn) {
     });
 }
 
+// Load Messages for Chat Page
+async function loadMessages(userId, userName) {
+    if (!userId || !userName) {
+        console.error("Invalid userId or userName passed to loadMessages.");
+        return;
+    }
 
-// Find Your Match Button Functionality
-if (findMatchBtn) {
-    findMatchBtn.addEventListener("click", async () => {
-        const userId = findMatchBtn.dataset.userId;
-        try {
-            const response = await fetch(`/matches/${userId}`);
-            const data = await response.json();
+    // Update Chat Header
+    const chatUserName = document.getElementById("chat-user-name");
+    const chatUserImage = document.getElementById("chat-user-image");
+    const chatMessages = document.getElementById("chat-messages");
 
-            if (data.matches && data.matches.length > 0) {
-                let matchesHtml = "<h3>Your Matches:</h3><ul>";
-                data.matches.forEach((match) => {
-                    matchesHtml += `
-                        <li>
-                            <img src="${match.profile_image}" alt="${match.display_name}" style="width: 50px; height: 50px; border-radius: 50%;">
-                            <span>${match.display_name}</span>
-                        </li>`;
-                });
-                matchesHtml += "</ul>";
-                document.querySelector(".container").innerHTML = matchesHtml;
-            } else {
-                alert("No matches found. Try liking more profiles!");
-            }
-        } catch (error) {
-            console.error("Error fetching matches:", error);
-            alert("An error occurred while finding your matches. Please try again.");
+    if (!chatUserName || !chatUserImage || !chatMessages) {
+        console.error("Chat UI elements are missing.");
+        return;
+    }
+
+    chatUserName.textContent = userName;
+    chatUserImage.src = `https://placehold.co/50x50`;
+
+    // Clear Previous Messages
+    chatMessages.innerHTML = '<p class="text-gray-500 text-center mt-4">Loading messages...</p>';
+
+    try {
+        const response = await fetch(`/messages/${userId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
-    });
+
+        const data = await response.json();
+
+        // Clear loading text
+        chatMessages.innerHTML = "";
+
+        data.forEach((msg) => {
+            const messageDiv = document.createElement("div");
+            messageDiv.className = `flex w-full mt-2 space-x-3 max-w-xs ${
+                msg.sender_id === currentUser.id ? "ml-auto justify-end" : ""
+            }`;
+
+            messageDiv.innerHTML = `
+                <div>
+                    <div class="${
+                        msg.sender_id === currentUser.id
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-300"
+                    } p-3 rounded-lg">
+                        <p class="text-sm">${msg.content}</p>
+                    </div>
+                    <span class="text-xs text-gray-500">${new Date(msg.timestamp).toLocaleTimeString()}</span>
+                </div>`;
+            chatMessages.appendChild(messageDiv);
+        });
+    } catch (error) {
+        console.error("Error loading messages:", error);
+        chatMessages.innerHTML = '<p class="text-gray-500 text-center mt-4">Failed to load messages.</p>';
+    }
 }
 
-// Scroll-Based Background Darkening Effect
-window.addEventListener("scroll", () => {
-    const scrollTop = window.scrollY || document.documentElement.scrollTop;
-    const maxDarkness = 0.85;
-    const opacity = Math.min(scrollTop / 500, maxDarkness);
-    document.body.style.background = `linear-gradient(135deg, rgba(29, 185, 84, ${1 - opacity}), rgba(25, 20, 20, ${1}))`;
-});
+// Send Message
+async function sendMessage(senderId, receiverId, content) {
+    if (!content || !receiverId) {
+        console.error("Invalid senderId, receiverId, or content.");
+        return;
+    }
 
-const matchesList = document.querySelector('.matches-list');
-const matches = [
-  { profile_image: 'https://placehold.co/80x80', display_name: 'User 1' },
-  { profile_image: 'https://placehold.co/80x80', display_name: 'User 2' },
-];
+    try {
+        const response = await fetch("/messages", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                sender_id: senderId,
+                receiver_id: receiverId,
+                content,
+            }),
+        });
 
-matches.forEach(match => {
-  const card = document.createElement('div');
-  card.classList.add('match-card');
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
 
-  card.innerHTML = `
-    <img src="${match.profile_image}" alt="${match.display_name}" />
-    <p>${match.display_name}</p>
-  `;
+        loadMessages(receiverId, document.getElementById("chat-user-name").textContent);
+        document.getElementById("message-input").value = "";
+    } catch (error) {
+        console.error("Error sending message:", error);
+    }
+}
 
-  matchesList.appendChild(card);
-});
+// Attach Send Button Event Listener
+const sendButton = document.getElementById("send-button");
+if (sendButton) {
+    console.log("Send button found");
+    sendButton.addEventListener("click", () => {
+        const messageInput = document.getElementById("message-input");
+        const content = messageInput?.value.trim();
+        if (!content || !selectedUserId) return;
+        sendMessage(currentUser.id, selectedUserId, content);
+    });
+} else {
+    console.error("Send button element is missing.");
+}

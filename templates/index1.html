@@ -108,7 +108,7 @@
                 width: 60px;
                 height: 60px;
                 border-radius: 50%;
-                margin-bottom: 5px;
+                margin-bottom: 10px;
                 box-shadow: 0 0 8px #1db954;
             }
 
@@ -118,7 +118,14 @@
                 margin: 5px 0;
             }
 
-            .match-card button {
+            .card-buttons {
+                display: flex;
+                flex-direction: column;
+                gap: 10px; /* Butonlar arası boşluk */
+                margin-top: 10px;
+            }
+
+            .card-buttons .btn {
                 background: #1db954;
                 color: white;
                 border: none;
@@ -126,14 +133,15 @@
                 border-radius: 5px;
                 cursor: pointer;
                 font-size: 0.8rem;
-                margin-top: 5px;
                 transition: background 0.3s ease;
-                width: 100%;
+                text-align: center;
+                text-decoration: none;
             }
 
-            .match-card button:hover {
+            .card-buttons .btn:hover {
                 background: #16a085;
             }
+
 
             .find-profiles-btn {
                 
@@ -185,16 +193,16 @@
                 <h3>Your Matches:</h3>
                 <div class="matches-container">
                     {% for match in matches %}
-                        <div class="match-card">
-                            <img src="{{ match.profile_image or 'https://placehold.co/150x150' }}" alt="{{ match.display_name }}">
-                            <p>{{ match.display_name }}</p>
-                            <a href="/profile/{{ match.id }}">
-                                <button>Check Profile</button>
-                            </a>
-                            <a href="/message/{{ match.id }}">
-                                <button>Message</button>
-                            </a>
+                    <div class="match-card">
+                        <img src="{{ match.profile_image or 'https://placehold.co/150x150' }}" alt="{{ match.display_name }}">
+                        <p>{{ match.display_name }}</p>
+                        <div class="card-buttons">
+                            <a href="/profile/{{ match.id }}" class="btn">Check Profile</a>
+                            <a href="#" class="btn message-btn" data-user-id="{{ match.id }}">Message</a>
+
                         </div>
+                    </div>
+                    
                     {% endfor %}
                 </div>
             {% else %}
@@ -202,7 +210,7 @@
             {% endif %}
             <a href="/find-profiles" class="btn find-profiles-btn">Find Profiles to Like</a>
         </div>
-
+    
         <footer>
             <p>© 2025 Harmony | Built with ❤️ for music lovers.</p>
         </footer>
