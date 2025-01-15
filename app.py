@@ -6,8 +6,8 @@ from faker import Faker
 import random
 from flask_migrate import Migrate
 from datetime import datetime
+from flask_socketio import SocketIO, join_room, leave_room, emit
 
-# Flask uygulaması oluşturuluyor
 app = Flask(__name__)
 
 # Instance path ayarları
@@ -23,6 +23,9 @@ app.secret_key = "your_secret_key"
 # Veritabanı
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
+# SocketIO nesnesini eventlet asenkron moduyla başlatın
+socketio = SocketIO(app, async_mode="eventlet")
 
 # Modeller
 class User(db.Model):
@@ -51,12 +54,60 @@ class Message(db.Model):
     sender = db.relationship('User', foreign_keys=[sender_id])
     receiver = db.relationship('User', foreign_keys=[receiver_id])
 
-# Spotify API bilgileri
+# Spotify API bilgileri (kendi bilgilerinizi girin)
 SPOTIFY_CLIENT_ID = "b2de7349f34f421287638527fd0612f1"
 SPOTIFY_CLIENT_SECRET = "b9ad5851cac44363ad7917cb988211ea"
 SPOTIFY_REDIRECT_URI = "http://127.0.0.1:5000/callback"
 
+# -------------------------------------------------
+# WebSocket (SocketIO) Olayları
+# -------------------------------------------------
+def get_room(sender_id, receiver_id):
+    """İki kullanıcı için ortak room adını oluşturur."""
+    return '_'.join(sorted([str(sender_id), str(receiver_id)]))
+
+@socketio.on('connect')
+def on_connect():
+    print("Bir istemci bağlandı.")
+
+@socketio.on('disconnect')
+def on_disconnect():
+    print("Bir istemci bağlantısı kesildi.")
+
+@socketio.on('join')
+def on_join(data):
+    sender_id = data.get('sender_id')
+    receiver_id = data.get('receiver_id')
+    room = get_room(sender_id, receiver_id)
+    join_room(room)
+    print(f"Kullanıcılar {sender_id} ve {receiver_id} room: {room}'a katıldı.")
+
+@socketio.on('send_message')
+def handle_send_message(data):
+    sender_id = data.get('sender_id')
+    receiver_id = data.get('receiver_id')
+    content = data.get('content')
+    if not sender_id or not receiver_id or not content:
+        emit('error', {'error': 'Invalid data'})
+        return
+    # Mesajı veritabanına kaydet
+    message = Message(sender_id=sender_id, receiver_id=receiver_id, content=content)
+    db.session.add(message)
+    db.session.commit()
+
+    room = get_room(sender_id, receiver_id)
+    message_data = {
+        'sender_id': sender_id,
+        'receiver_id': receiver_id,
+        'content': content,
+        'timestamp': message.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+    }
+    emit('receive_message', message_data, room=room)
+    print("Mesaj gönderildi:", message_data)
+
+# -------------------------------------------------
 # Rotalar
+# -------------------------------------------------
 @app.route("/")
 def home():
     user_logged_in = session.get("user_logged_in", False)
@@ -97,8 +148,6 @@ def login():
 @app.route("/callback")
 def callback():
     code = request.args.get("code")
-
-    # Spotify'dan erişim token'ını alma
     token_url = "https://accounts.spotify.com/api/token"
     token_data = {
         "grant_type": "authorization_code",
@@ -107,11 +156,8 @@ def callback():
         "client_id": SPOTIFY_CLIENT_ID,
         "client_secret": SPOTIFY_CLIENT_SECRET,
     }
-
     try:
         token_response = requests.post(token_url, data=token_data)
-        print("Token Response Status Code:", token_response.status_code)
-        print("Token Response Content:", token_response.text)
         if token_response.status_code != 200:
             raise ValueError("Failed to fetch token")
         token_response_json = token_response.json()
@@ -124,11 +170,8 @@ def callback():
     headers = {"Authorization": f"Bearer {access_token}"}
 
     try:
-        # Kullanıcı profilini getir
         user_profile_url = "https://api.spotify.com/v1/me"
         user_profile_response = requests.get(user_profile_url, headers=headers)
-        print("User Profile Response Status Code:", user_profile_response.status_code)
-        print("User Profile Response Content:", user_profile_response.text)
         if user_profile_response.status_code != 200:
             raise ValueError("Failed to fetch user profile")
         user_profile = user_profile_response.json()
@@ -144,7 +187,6 @@ def callback():
         if not spotify_id or not display_name:
             raise ValueError("Incomplete user data from Spotify")
 
-        # Kullanıcıyı veritabanında ekle veya güncelle
         user = User.query.filter_by(spotify_id=spotify_id).first()
         if not user:
             user = User(
@@ -154,60 +196,14 @@ def callback():
                 email=email,
             )
             db.session.add(user)
-            print(f"New user added: {display_name} ({spotify_id})")
         else:
             user.display_name = display_name
             user.profile_image = profile_image
             user.email = email
-            print(f"Existing user updated: {display_name} ({spotify_id})")
 
-        # Top artists'ı getir
-        top_artists_url = "https://api.spotify.com/v1/me/top/artists"
-        top_artists_response = requests.get(top_artists_url, headers=headers)
-        print("Top Artists Response Status Code:", top_artists_response.status_code)
-        print("Top Artists Response Content:", top_artists_response.text)
-        if top_artists_response.status_code != 200:
-            raise ValueError("Failed to fetch top artists")
-        top_artists_data = top_artists_response.json()
-        top_artists = [
-            {
-                "name": artist.get("name", "Unknown Artist"),
-                "genres": artist.get("genres", []),
-                "image": artist.get("images", [{}])[0].get("url", "/static/default_artist.png"),
-                "spotify_url": artist.get("external_urls", {}).get("spotify", "#"),
-            }
-            for artist in top_artists_data.get("items", [])[:10]
-        ]
-
-        # Top tracks'i getir
-        top_tracks_url = "https://api.spotify.com/v1/me/top/tracks"
-        top_tracks_response = requests.get(top_tracks_url, headers=headers)
-        print("Top Tracks Response Status Code:", top_tracks_response.status_code)
-        print("Top Tracks Response Content:", top_tracks_response.text)
-        if top_tracks_response.status_code != 200:
-            raise ValueError("Failed to fetch top tracks")
-        top_tracks_data = top_tracks_response.json()
-        top_tracks = [
-            {
-                "name": track.get("name", "Unknown Track"),
-                "album": track.get("album", {}).get("name", "Unknown Album"),
-                "artists": [artist.get("name", "Unknown Artist") for artist in track.get("artists", [])],
-                "image": track.get("album", {}).get("images", [{}])[0].get("url", "/static/default_album.png"),
-                "spotify_url": track.get("external_urls", {}).get("spotify", "#"),
-            }
-            for track in top_tracks_data.get("items", [])[:10]
-        ]
-
-        # Genre'leri çıkar
-        genres = list(set(genre for artist in top_artists for genre in artist["genres"]))
-
-        user.top_artists = top_artists
-        user.top_tracks = top_tracks
-        user.genres = genres
-
+        # Örnek: Top artists, tracks ve genre hesaplamaları yapılabilir
         db.session.commit()
 
-        # Session'ı güncelle
         session["user_logged_in"] = True
         session["spotify_id"] = spotify_id
         session["profile_picture_url"] = profile_image
@@ -216,21 +212,27 @@ def callback():
         return redirect(url_for("index1"))
 
     except Exception as e:
-        print(f"Error saving user data: {str(e)}")
         return jsonify({"error": f"Error saving user data: {str(e)}"}), 500
+
+@app.route("/profile/<int:user_id>")
+def view_profile(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    return render_template("profile.html",
+                           user=user,
+                           top_artists=user.top_artists,
+                           top_tracks=user.top_tracks,
+                           genres=user.genres)
 
 @app.route("/find-profiles")
 def find_profiles():
-    # Oturum açmış kullanıcının ID'sini alın
     user_id = session.get("user_id")
     if not user_id:
         return redirect("/login")
     current_user = User.query.get(user_id)
     profile_picture_url = current_user.profile_image if current_user else None
-
-    # Tüm kullanıcı profillerini al
     profiles = User.query.all()
-
     if profiles and len(profiles) > 0:
         return render_template("match.html",
                                profiles=profiles,
@@ -268,17 +270,14 @@ def like_profile():
     if not profile_id:
         return jsonify({"error": "Profile ID is required"}), 400
 
-    # Eğer beğeni zaten varsa
     existing_like = Like.query.filter_by(from_user_id=current_user_id, to_user_id=profile_id).first()
     if existing_like:
         return jsonify({"message": "Profile already liked."}), 200
 
-    # Yeni beğeni ekle
     new_like = Like(from_user_id=current_user_id, to_user_id=profile_id)
     db.session.add(new_like)
     db.session.commit()
 
-    # Karşılıklı beğenme kontrolü
     if check_match(current_user_id, profile_id):
         return jsonify({"message": "It's a match!"}), 200
 
@@ -289,19 +288,6 @@ def check_match(user_id, other_user_id):
     like_from_other = Like.query.filter_by(from_user_id=other_user_id, to_user_id=user_id).first()
     return like_from_user is not None and like_from_other is not None
 
-@app.route('/api/get_likes')
-def get_likes():
-    likes = Like.query.all()
-    data = [
-        {
-            "from_user": like.from_user_id,
-            "to_user": like.to_user_id,
-            "created_at": like.created_at
-        }
-        for like in likes
-    ]
-    return jsonify(data)
-# 20 random yaratma sitesi http://127.0.0.1:5000/populate-database
 @app.route("/populate-database")
 def populate_database():
     fake = Faker()
@@ -323,7 +309,6 @@ def populate_database():
             genres=fake_genres,
         )
         db.session.add(user)
-
     db.session.commit()
     return "Database populated with dynamically generated fake profiles!"
 
@@ -345,67 +330,6 @@ def add_likes():
     db.session.commit()
     return "Likes added!"
 
-@app.route('/api/matches/<int:user_id>')
-def get_matches(user_id):
-    matches = db.session.query(User).join(
-        Like, User.id == Like.from_user_id
-    ).filter(
-        Like.to_user_id == user_id
-    ).filter(
-        db.session.query(Like).filter(
-            Like.from_user_id == user_id,
-            Like.to_user_id == User.id
-        ).exists()
-    ).all()
-
-    matches_data = [
-        {
-            "id": match.id,
-            "display_name": match.display_name,
-            "profile_image": match.profile_image,
-        }
-        for match in matches
-    ]
-    return jsonify(matches_data)
-
-@app.route("/index1")
-def index1():
-    user_logged_in = session.get("user_logged_in", False)
-    profile_picture_url = session.get("profile_picture_url", "")
-    spotify_id = session.get("spotify_id")
-    user = User.query.filter_by(spotify_id=spotify_id).first()
-    if not user:
-        return redirect(url_for("home"))
-
-    matches = db.session.query(User).join(
-        Like, (Like.to_user_id == User.id)
-    ).filter(
-        Like.from_user_id == user.id,
-        Like.to_user_id.in_(
-            db.session.query(Like.from_user_id).filter(Like.to_user_id == user.id)
-        )
-    ).all()
-
-    return render_template(
-        "index1.html",
-        user_logged_in=user_logged_in,
-        profile_picture_url=profile_picture_url,
-        matches=matches,
-        user=user  # user değişkenini ekliyoruz
-    )
-
-
-@app.route("/profile/<int:user_id>")
-def view_profile(user_id):
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-    return render_template("profile.html",
-                           user=user,
-                           top_artists=user.top_artists,
-                           top_tracks=user.top_tracks,
-                           genres=user.genres)
-
 @app.route('/api/get_profiles')
 def get_profiles():
     current_user_id = session.get("user_id")
@@ -421,7 +345,6 @@ def get_profiles():
     ).all()
 
     if not profiles:
-        print("No profiles found to display for the current user.")
         return jsonify([])
 
     profiles_data = [
@@ -441,28 +364,12 @@ def get_profiles():
         }
         for profile in profiles
     ]
-
-    print(f"Current user ID: {current_user_id}")
-    print(f"Liked profile IDs: {liked_profile_ids}")
-    print(f"Profiles fetched for display: {[p.display_name for p in profiles]}")
-
     return jsonify(profiles_data)
 
-@app.route('/messages', methods=['POST'])
-def send_message():
-    sender_id = request.json.get('sender_id')
-    receiver_id = request.json.get('receiver_id')
-    content = request.json.get('content')
-    if not sender_id or not receiver_id or not content:
-        return jsonify({"error": "Invalid data"}), 400
-    message = Message(sender_id=sender_id, receiver_id=receiver_id, content=content)
-    db.session.add(message)
-    db.session.commit()
-    return jsonify({"message": "Message sent successfully"}), 200
-
-@app.route('/messages/<int:receiver_id>')
-def get_messages(receiver_id):
-    user_id = session.get('user_id')  # Oturum açmış kullanıcı
+# API: Mesajları JSON olarak döndür
+@app.route('/api/messages/<int:receiver_id>')
+def get_messages_api(receiver_id):
+    user_id = session.get('user_id')
     messages = Message.query.filter(
         ((Message.sender_id == user_id) & (Message.receiver_id == receiver_id)) |
         ((Message.sender_id == receiver_id) & (Message.receiver_id == user_id))
@@ -475,28 +382,77 @@ def get_messages(receiver_id):
         "timestamp": msg.timestamp.strftime('%Y-%m-%d %H:%M:%S')
     } for msg in messages])
 
-@app.route("/messages/<int:user_id>")
+# Sohbet sayfası: HTML şablon render et
+@app.route('/messages/<int:user_id>')
 def messages(user_id):
-    # Oturumdaki kullanıcı bilgisi
     current_user_id = session.get("user_id")
-    
-    # Mesajlaşılan kullanıcıyı getir
     user = User.query.filter_by(id=user_id).first()
     if not user:
         return "User not found", 404
-    
-    # Kullanıcılar arasındaki mesajları al
     messages = Message.query.filter(
-        (Message.sender_id == current_user_id) & (Message.receiver_id == user_id) |
-        (Message.sender_id == user_id) & (Message.receiver_id == current_user_id)
+        ((Message.sender_id == current_user_id) & (Message.receiver_id == user_id)) |
+        ((Message.sender_id == user_id) & (Message.receiver_id == current_user_id))
     ).order_by(Message.timestamp).all()
-    
-    # Mesajları template'e aktar
     return render_template("message.html", messages=messages, user=user)
 
+# Mesaj gönderme (POST)
+@app.route('/messages', methods=['POST'])
+def send_message():
+    # JSON verisi gönderilmişse
+    if request.is_json:
+        data = request.get_json()
+        sender_id = data.get('sender_id')
+        receiver_id = data.get('receiver_id')
+        content = data.get('content')
+    else:
+        # Form gönderimi (application/x-www-form-urlencoded) durumu
+        sender_id = request.form.get('sender_id')
+        receiver_id = request.form.get('receiver_id')
+        content = request.form.get('message')  # Formdaki input name="message"
 
+    if not sender_id or not receiver_id or not content:
+        return jsonify({"error": "Invalid data"}), 400
+
+    try:
+        sender_id = int(sender_id)
+        receiver_id = int(receiver_id)
+    except ValueError:
+        return jsonify({"error": "Invalid sender or receiver ID"}), 400
+
+    message = Message(sender_id=sender_id, receiver_id=receiver_id, content=content)
+    db.session.add(message)
+    db.session.commit()
+    
+    if not request.is_json:
+        return redirect(request.referrer or url_for('home'))
+    
+    return jsonify({"message": "Message sent successfully"}), 200
+
+@app.route("/index1")
+def index1():
+    user_logged_in = session.get("user_logged_in", False)
+    profile_picture_url = session.get("profile_picture_url", "")
+    spotify_id = session.get("spotify_id")
+    user = User.query.filter_by(spotify_id=spotify_id).first()
+    if not user:
+        return redirect(url_for("home"))
+
+    matches = db.session.query(User).join(
+        Like, (Like.to_user_id == User.id)
+    ).filter(
+        Like.from_user_id == user.id,
+        Like.to_user_id.in_(
+            db.session.query(Like.from_user_id).filter(Like.to_user_id == user.id)
+        )
+    ).all()
+
+    return render_template("index1.html",
+                           user_logged_in=user_logged_in,
+                           profile_picture_url=profile_picture_url,
+                           matches=matches,
+                           user=user)
 
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    socketio.run(app, debug=True)

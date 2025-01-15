@@ -1,22 +1,20 @@
-<!-- @ts-nocheck -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Harmony - Messages</title>
+  <title>Chat Screen</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- SocketIO kütüphanesi -->
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js" integrity="sha384-..." crossorigin="anonymous"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
   <style>
-    body {
-      font-family: 'Roboto', sans-serif;
-    }
+    body { font-family: 'Roboto', sans-serif; }
   </style>
 </head>
 <body class="bg-gray-100 h-screen flex">
-
-  <!-- Sidebar (User List) -->
+  <!-- Sol Bölüm: Chat Listesi (Opsiyonel) -->
   <div class="w-1/4 bg-white border-r border-gray-200 flex flex-col">
     <div class="p-4 border-b border-gray-200 flex items-center">
       <button class="text-gray-600" onclick="window.history.back();">
@@ -24,136 +22,103 @@
       </button>
       <h2 class="text-lg font-semibold ml-4">Chats</h2>
     </div>
-    <div id="user-list" class="flex-grow overflow-auto">
-      {% for user in users %}
-      <div 
-        class="user-item p-4 flex items-center border-b border-gray-200 cursor-pointer hover:bg-gray-100"
-        data-user-id="{{ user.id }}"
-        data-user-name="{{ user.display_name | safe | escape }}">
-        <img 
-          alt="User profile picture"
-          class="rounded-full h-12 w-12"
-          src="{{ user.profile_image or 'https://placehold.co/50x50' }}"/>
+    <div class="flex-grow overflow-auto">
+      <!-- Örnek Chat Listesi Öğesi -->
+      <div class="p-4 flex items-center border-b border-gray-200">
+        <img alt="User profile picture" class="rounded-full h-12 w-12" src="https://placehold.co/50x50"/>
         <div class="ml-4">
-          <p class="text-sm font-medium">{{ user.display_name }}</p>
-          <p class="text-xs text-gray-500">{{ user.last_message or 'No messages yet.' }}</p>
+          <p class="text-sm font-medium">Sample User</p>
+          <p class="text-xs text-gray-500">Hey! How are you?</p>
         </div>
       </div>
-      {% endfor %}
-    </div>
-  </div>
-
-  <!-- Chat Window -->
-  <div class="flex flex-col flex-grow h-screen">
-<!-- Chat Header -->
-<div class="flex items-center p-4 bg-white border-b border-gray-200">
-    <img 
-      id="chat-user-image" 
-      class="rounded-full h-12 w-12" 
-      src="{{ selected_user.profile_image or 'https://placehold.co/50x50' }}" 
-      alt="{{ selected_user.display_name }}" />
-    <div class="ml-4">
-      <p id="chat-user-name" class="text-lg font-medium">{{ selected_user.display_name }}</p>
-      <p class="text-sm text-gray-500">Online</p>
     </div>
   </div>
   
-
+  <!-- Sağ Bölüm: Sohbet Ekranı -->
+  <div class="flex flex-col flex-grow h-screen">
+    <!-- Chat Header -->
+    <div class="flex items-center p-4 bg-white border-b border-gray-200">
+      <img alt="User profile picture" class="rounded-full h-12 w-12" src="{{ user.profile_image or 'https://placehold.co/50x50' }}"/>
+      <div class="ml-4">
+        <p id="chat-user-name" class="text-lg font-medium">{{ user.display_name }}</p>
+      </div>
+    </div>
+    
     <!-- Chat Messages -->
     <div id="chat-messages" class="flex flex-col flex-grow h-0 p-4 overflow-auto bg-gray-100">
-      <p class="text-gray-500 text-center mt-4">No messages yet. Select a user to start chatting!</p>
+      {% if messages %}
+        {% for msg in messages %}
+          <div class="flex w-full mt-2 space-x-3 max-w-xs {% if msg.sender_id == session.get('user_id') %}ml-auto justify-end{% endif %}">
+            <div>
+              <div class="{% if msg.sender_id == session.get('user_id') %}bg-blue-600 text-white{% else %}bg-gray-300{% endif %} p-3 rounded-lg">
+                <p class="text-sm">{{ msg.content }}</p>
+              </div>
+              <span class="text-xs text-gray-500">{{ msg.timestamp }}</span>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-gray-500 text-center mt-4">No messages yet. Start chatting!</p>
+      {% endif %}
     </div>
-
-    <!-- Message Input -->
+    
+    <!-- Mesaj Gönderme Formu (SocketIO ile gönderim yapılacak) -->
     <div class="bg-white p-4 flex items-center">
-      <input 
-        id="message-input" 
-        class="flex-grow border rounded-full py-2 px-4 mr-2 text-sm" 
-        placeholder="Type a message..." 
-        type="text"/>
-      <button 
-        id="send-button" 
-        class="bg-blue-600 text-white rounded-full p-2 disabled:opacity-50" 
-        disabled>
-        <i class="fas fa-paper-plane"></i>
-      </button>
+      <form id="message-form" class="flex flex-grow" onsubmit="return false;">
+        <!-- Gizli alanlar: sender ve receiver ID -->
+        <input type="hidden" id="sender-id" value="{{ session.get('user_id') }}">
+        <input type="hidden" id="receiver-id" value="{{ user.id }}">
+        <input name="message" id="message-input" class="flex-grow border rounded-full py-2 px-4 mr-2 text-sm" placeholder="Type a message..." type="text"/>
+        <button type="submit" id="send-button" class="bg-blue-600 text-white rounded-full p-2">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </form>
     </div>
   </div>
 
-  <!-- Link to app.js -->
-  <script src="/static/js/app.js"></script>
-
-  <!-- Inline Script to Handle User Clicks -->
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Tüm kullanıcı öğelerini seçiyoruz
-      const userItems = document.querySelectorAll('.user-item');
-      
-      userItems.forEach(item => {
-        item.addEventListener('click', function() {
-          const userId = this.getAttribute('data-user-id');
-          const userName = this.getAttribute('data-user-name');
+    // SocketIO istemci tarafı kodu
+    const socket = io();
 
-          // Chat başlığını güncelle
-          document.getElementById('chat-user-name').textContent = userName;
-          // Burada kullanıcı resmini güncelleyebilirsiniz, eğer veriniz varsa
-          // Örneğin:
-          // const userImage = this.querySelector('img').src;
-          // document.getElementById('chat-user-image').src = userImage;
+    const senderId = document.getElementById('sender-id').value;
+    const receiverId = document.getElementById('receiver-id').value;
+    // Ortak odanın adı, iki ID'yi sıralı birleştiriyoruz
+    const room = [senderId, receiverId].sort().join('_');
 
-          // Mesajları yükleme fonksiyonunu çağır
-          loadMessages(userId, userName);
-        });
-      });
+    // Odaya katılma
+    socket.emit('join', { sender_id: senderId, receiver_id: receiverId });
 
-      // Mesaj inputu için etkinlik dinleyicisi
+    // Mesaj formu gönderim
+    document.getElementById('message-form').addEventListener('submit', function(e) {
+      e.preventDefault();
       const messageInput = document.getElementById('message-input');
-      const sendButton = document.getElementById('send-button');
-
-      messageInput.addEventListener('input', function() {
-        sendButton.disabled = this.value.trim() === '';
-      });
-
-      sendButton.addEventListener('click', function() {
-        const message = messageInput.value.trim();
-        if (message !== '') {
-          // Mesaj gönderme fonksiyonunu çağır
-          sendMessage(message);
-          messageInput.value = '';
-          sendButton.disabled = true;
-        }
-      });
+      const content = messageInput.value.trim();
+      if (!content) return;
+      socket.emit('send_message', { sender_id: senderId, receiver_id: receiverId, content: content });
+      messageInput.value = "";
     });
 
-    // loadMessages fonksiyonunun tanımı
-    function loadMessages(userId, userName) {
-      // Burada AJAX isteği yaparak mesajları alabilir ve chat penceresini güncelleyebilirsiniz
-      console.log(`Loading messages for user ${userName} with ID ${userId}`);
-      
-      // Örnek olarak, mevcut mesajları temizleyip yeni bir mesaj ekleyelim
-      const chatMessages = document.getElementById('chat-messages');
-      chatMessages.innerHTML = `<p class="text-gray-500 text-center mt-4">Chat with ${userName}.</p>`;
-      
-      // Gerçek uygulamada burada sunucudan mesajları almanız gerekecek
-    }
+    // Yeni mesaj alındığında
+    socket.on('receive_message', function(data) {
+      const chatMessagesEl = document.getElementById("chat-messages");
+      const messageDiv = document.createElement("div");
+      const isCurrentUser = data.sender_id == senderId;
+      messageDiv.className = `flex w-full mt-2 space-x-3 max-w-xs ${isCurrentUser ? "ml-auto justify-end" : ""}`;
+      messageDiv.innerHTML = `
+        <div>
+          <div class="${isCurrentUser ? "bg-blue-600 text-white" : "bg-gray-300"} p-3 rounded-lg">
+            <p class="text-sm">${data.content}</p>
+          </div>
+          <span class="text-xs text-gray-500">${data.timestamp}</span>
+        </div>
+      `;
+      chatMessagesEl.appendChild(messageDiv);
+      chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+    });
 
-    // sendMessage fonksiyonunun tanımı
-    function sendMessage(message) {
-      // Burada mesajı sunucuya gönderebilir ve chat penceresine ekleyebilirsiniz
-      console.log(`Sending message: ${message}`);
-      
-      // Örnek olarak, mesajı chat penceresine ekleyelim
-      const chatMessages = document.getElementById('chat-messages');
-      const messageElement = document.createElement('div');
-      messageElement.className = 'self-end bg-blue-100 text-blue-800 rounded-lg p-2 mb-2 max-w-xs';
-      messageElement.textContent = message;
-      chatMessages.appendChild(messageElement);
-      
-      // Chat penceresini aşağı kaydır
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-      
-      // Gerçek uygulamada burada mesajı sunucuya göndermeniz gerekecek
-    }
+    socket.on('error', function(data) {
+      console.error('Socket error:', data);
+    });
   </script>
 </body>
 </html>
