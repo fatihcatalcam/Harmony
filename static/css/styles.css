@@ -118,7 +118,8 @@ header img:hover {
 /* Button Styles */
 .actions {
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between; /* Ensure buttons are on opposite sides */
+  align-items: center; /* Align buttons vertically */
   margin-top: 15px;
 }
 
@@ -126,8 +127,8 @@ header img:hover {
   background-color: #191414;
   border: none;
   border-radius: 50%;
-  width: 40px; /* Button width */
-  height: 40px; /* Button height */
+  width: 50px; /* Button width */
+  height: 50px; /* Button height */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -136,14 +137,26 @@ header img:hover {
 }
 
 .actions .btn i {
-  font-size: 1.2em;
-  color: #1DB954;
+  font-size: 1.5rem;
+  color: white; /* Icon color */
 }
 
 .actions .btn.pass {
-  background-color: #e74c3c;
+  background-color: #e74c3c; /* Red for pass */
+}
+
+.actions .btn.like {
+  background-color: #1DB954; /* Green for like */
+}
+
+.actions .btn.pass:hover {
+  background-color: #c0392b; /* Darker red on hover */
+}
+
+.actions .btn.like:hover {
+  background-color: #16a085; /* Darker green on hover */
 }
 
 .actions .btn:hover {
-  transform: scale(1.1); /* Slight zoom on hover */
+  transform: scale(1.1); /* Hover effect */
 }

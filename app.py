@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify, redirect, render_template, session, u
 from flask_sqlalchemy import SQLAlchemy
 import requests
 import os
+from faker import Faker
+import random
 
 # Flask uygulaması oluşturuluyor
 app = Flask(__name__)
@@ -260,19 +262,73 @@ def like_profile():
 
     return jsonify({"message": "Profile liked!"}), 200
 
+@app.route('/api/get_likes')
+def get_likes():
+    likes = Like.query.all()
+    data = [
+        {
+            "from_user": like.from_user_id,
+            "to_user": like.to_user_id,
+            "created_at": like.created_at
+        }
+        for like in likes
+    ]
+    return jsonify(data)
 
-@app.route("/add-test-user")
-def add_test_user():
-    test_user = User(
-        spotify_id="test_id",
-        display_name="Test User",
-        profile_image="https://placehold.co/80x80",
-        top_artists=[{"name": "Artist 1"}],
-        top_tracks=[{"name": "Song 1"}],
-    )
-    db.session.add(test_user)
+
+@app.route("/populate-database")
+def populate_database():
+    fake = Faker()
+    genres_pool = ["pop", "rock", "jazz", "blues", "hip-hop", "classical", "electronic", "country"]
+
+    for _ in range(10):  # Generate 10 fake profiles
+        fake_name = fake.first_name()
+        fake_spotify_id = f"user_{fake.uuid4()[:8]}"
+        fake_profile_image = f"https://placehold.co/80x80?text={fake_name[0]}"
+        fake_top_artists = [{"name": fake.name()} for _ in range(3)]
+        fake_top_tracks = [{"name": f"Track {random.randint(1, 100)}"} for _ in range(3)]
+        fake_genres = random.sample(genres_pool, 2)  # Select 2 random genres
+
+        user = User(
+            spotify_id=fake_spotify_id,
+            display_name=fake_name,
+            profile_image=fake_profile_image,
+            top_artists=fake_top_artists,
+            top_tracks=fake_top_tracks,
+            genres=fake_genres,
+        )
+        db.session.add(user)
+
     db.session.commit()
-    return "Test user added!"
+    return "Database populated with dynamically generated fake profiles!"
+
+@app.route('/add-likes')
+def add_likes():
+    likes = [
+        Like(from_user_id=10, to_user_id=1),  # Alice likes Bob
+        Like(from_user_id=15, to_user_id=1),
+    ]
+    db.session.add_all(likes)
+    db.session.commit()
+    return "Likes added!"
+
+@app.route('/api/matches/<int:user_id>')
+def get_matches(user_id):
+    matches = db.session.query(Like).join(
+        Like,
+        (Like.from_user_id == user_id) & (Like.to_user_id == Like.from_user_id)
+    ).all()
+
+    data = [
+        {
+            "user": match.from_user_id,
+            "matched_with": match.to_user_id,
+            "created_at": match.created_at
+        }
+        for match in matches
+    ]
+    return jsonify(data)
+
 
 
 @app.route("/index1")
@@ -293,47 +349,46 @@ def index1():
 
 @app.route('/api/get_profiles')
 def get_profiles():
-    # Get the current logged-in user's ID from the session
     current_user_id = session.get("user_id")
     if not current_user_id:
-        # If no user is logged in, return an error response
         return jsonify({"error": "User not logged in"}), 401
 
-    # Fetch IDs of users already liked by the current user
     liked_profiles = Like.query.filter_by(from_user_id=current_user_id).with_entities(Like.to_user_id).all()
-    liked_profile_ids = [profile_id[0] for profile_id in liked_profiles]  # Extracting IDs from query results
+    liked_profile_ids = [profile_id[0] for profile_id in liked_profiles]
 
-    # Fetch profiles excluding the current user and the ones they already liked
     profiles = User.query.filter(
-        User.id != current_user_id,  # Exclude the current user
-        ~User.id.in_(liked_profile_ids)  # Exclude users already liked
+        User.id != current_user_id,
+        ~User.id.in_(liked_profile_ids)
     ).all()
 
-    # If no profiles are found, return an empty list
     if not profiles:
-        print("No profiles found to display for the current user.")  # Debugging information
+        print("No profiles found to display for the current user.")
         return jsonify([])
 
-    # Prepare the profile data for the response
     profiles_data = [
         {
             "id": profile.id,
             "display_name": profile.display_name,
-            "top_artists": [artist["name"] for artist in (profile.top_artists or [])[:3]],  # Top 3 artists
-            "top_tracks": [track["name"] for track in (profile.top_tracks or [])[:3]],  # Top 3 tracks
-            "genres": profile.genres[:5] if profile.genres else [],  # Top 5 genres
-            "profile_image": profile.profile_image or "https://placehold.co/80x80",  # Default image if none exists
+            "top_artists": [
+                {"name": artist.get("name"), "image": artist.get("image", "https://placehold.co/40x40")}
+                for artist in (profile.top_artists or [])[:3]
+            ],
+            "top_tracks": [
+                {"name": track.get("name"), "image": track.get("image", "https://placehold.co/40x40")}
+                for track in (profile.top_tracks or [])[:3]
+            ],
+            "genres": profile.genres[:5] if profile.genres else [],
+            "profile_image": profile.profile_image or "https://placehold.co/80x80",
         }
         for profile in profiles
     ]
 
-    # Debugging logs for better clarity
-    print(f"Current user ID: {current_user_id}")  # Log current user ID
-    print(f"Liked profile IDs: {liked_profile_ids}")  # Log IDs of liked profiles
-    print(f"Profiles fetched for display: {[p.display_name for p in profiles]}")  # Log fetched profile names
+    print(f"Current user ID: {current_user_id}")
+    print(f"Liked profile IDs: {liked_profile_ids}")
+    print(f"Profiles fetched for display: {[p.display_name for p in profiles]}")
 
-    # Return the profiles as a JSON response
     return jsonify(profiles_data)
+
 
 
 
