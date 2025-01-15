@@ -96,3 +96,20 @@ window.addEventListener("scroll", () => {
     document.body.style.background = `linear-gradient(135deg, rgba(29, 185, 84, ${1 - opacity}), rgba(25, 20, 20, ${1}))`;
 });
 
+const matchesList = document.querySelector('.matches-list');
+const matches = [
+  { profile_image: 'https://placehold.co/80x80', display_name: 'User 1' },
+  { profile_image: 'https://placehold.co/80x80', display_name: 'User 2' },
+];
+
+matches.forEach(match => {
+  const card = document.createElement('div');
+  card.classList.add('match-card');
+
+  card.innerHTML = `
+    <img src="${match.profile_image}" alt="${match.display_name}" />
+    <p>${match.display_name}</p>
+  `;
+
+  matchesList.appendChild(card);
+});

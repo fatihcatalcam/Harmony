@@ -296,9 +296,11 @@ def like_profile():
     # Check for a mutual like
     mutual_like = Like.query.filter_by(from_user_id=profile_id, to_user_id=current_user_id).first()
     if mutual_like:
-        return jsonify({"message": "It's a match!"}), 200
+        # Return a response indicating a match
+        return jsonify({"message": "It's a match!", "match": True}), 200
 
-    return jsonify({"message": "Profile liked!"}), 200
+    return jsonify({"message": "Profile liked!", "match": False}), 200
+
 
 @app.route('/api/get_likes')
 def get_likes():
@@ -386,14 +388,28 @@ def index1():
     profile_picture_url = session.get("profile_picture_url", "")
     spotify_id = session.get("spotify_id")
     user = User.query.filter_by(spotify_id=spotify_id).first()
+
     if not user:
         return redirect(url_for("home"))
+
+    # Matches sorgusu
+    matches = db.session.query(User).join(
+        Like, (Like.to_user_id == User.id)
+    ).filter(
+        Like.from_user_id == user.id,
+        Like.to_user_id.in_(
+            db.session.query(Like.from_user_id).filter(Like.to_user_id == user.id)
+        )
+    ).all()
+
     return render_template(
         "index1.html",
         user_logged_in=user_logged_in,
         profile_picture_url=profile_picture_url,
-        user=user
+        user=user,
+        matches=matches
     )
+
 
 
 @app.route('/api/get_profiles')

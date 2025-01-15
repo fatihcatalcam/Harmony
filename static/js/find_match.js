@@ -137,6 +137,18 @@ function showMatchOverlay() {
     }, 3000);
 }
 
+function showMatchNotification() {
+    const notification = document.getElementById('match-notification');
+    notification.classList.remove('hidden');
+    notification.classList.add('visible');
+
+    // Hide the notification after 3 seconds
+    setTimeout(() => {
+        notification.classList.remove('visible');
+        notification.classList.add('hidden');
+    }, 3000);
+}
+
 // Like Profile Functionality
 async function likeProfile(profileId) {
     try {
