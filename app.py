@@ -4,6 +4,8 @@ import requests
 import os
 from faker import Faker
 import random
+from flask_migrate import Migrate
+
 
 # Flask uygulaması oluşturuluyor
 app = Flask(__name__)
@@ -20,6 +22,7 @@ app.secret_key = "your_secret_key"
 
 # Veritabanı
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # Modeller
 class User(db.Model):
@@ -483,7 +486,50 @@ def get_profiles():
 
     return jsonify(profiles_data)
 
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=db.func.now())
 
+    sender = db.relationship('User', foreign_keys=[sender_id], backref='sent_messages')
+    receiver = db.relationship('User', foreign_keys=[receiver_id], backref='received_messages')
+
+@app.route('/send_message', methods=['POST'])
+def send_message():
+    sender_id = session.get('user_id')  # Oturum açmış kullanıcı
+    receiver_id = request.form.get('receiver_id')
+    content = request.form.get('content')
+
+    if not content or not receiver_id:
+        return jsonify({"error": "Content and receiver ID are required."}), 400
+
+    # Yeni mesaj oluştur
+    message = Message(sender_id=sender_id, receiver_id=receiver_id, content=content)
+    db.session.add(message)
+    db.session.commit()
+
+    return jsonify({"message": "Message sent successfully."}), 200
+
+@app.route('/messages/<int:receiver_id>')
+def get_messages(receiver_id):
+    user_id = session.get('user_id')  # Oturum açmış kullanıcı
+
+    # Kullanıcılar arasındaki mesajları al
+    messages = Message.query.filter(
+        ((Message.sender_id == user_id) & (Message.receiver_id == receiver_id)) |
+        ((Message.sender_id == receiver_id) & (Message.receiver_id == user_id))
+    ).order_by(Message.timestamp).all()
+
+    # Mesajları JSON olarak döndür
+    return jsonify([{
+        "id": msg.id,
+        "sender_id": msg.sender_id,
+        "receiver_id": msg.receiver_id,
+        "content": msg.content,
+        "timestamp": msg.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+    } for msg in messages])
 
 
 if __name__ == "__main__":
