@@ -106,63 +106,55 @@ if (logoutBtn) {
 }
 
 // Function: Load Messages for Chat Page (API çağrısı içeren versiyon)
-async function loadMessages(userId, userName) {
-    if (!userId || !userName) {
-        console.error("Invalid userId or userName passed to loadMessages.");
-        return;
-    }
-
-    // Chat UI öğelerini güncelleme
-    const chatUserName = document.getElementById("chat-user-name");
-    const chatUserImage = document.getElementById("chat-user-image");
-    const chatMessages = document.getElementById("chat-messages");
-
-    if (!chatUserName || !chatUserImage || !chatMessages) {
-        console.error("Chat UI elements are missing.");
-        return;
-    }
-
-    chatUserName.textContent = userName;
-    chatUserImage.src = `https://placehold.co/50x50`;
-
-    // Önceki mesajları temizle
-    chatMessages.innerHTML = '<p class="text-gray-500 text-center mt-4">Loading messages...</p>';
-
+async function loadMessages(receiverId) {
+    const chatMessagesEl = document.getElementById('chat-messages');
+    chatMessagesEl.innerHTML = '<p class="text-gray-500 text-center">Loading messages...</p>';
+  
     try {
-        const response = await fetch(`/messages/${userId}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+      const response = await fetch(`/api/messages/${receiverId}`);
+      const messages = await response.json();
+      chatMessagesEl.innerHTML = '';
+  
+      messages.forEach((msg) => {
+        const isCurrentUser = msg.sender_id === parseInt(document.getElementById('sender-id').value);
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `flex w-full mt-2 space-x-3 max-w-xs ${isCurrentUser ? 'ml-auto justify-end' : ''}`;
+  
+        if (msg.song) {
+          // Şarkı Mesajı
+          messageDiv.innerHTML = `
+            <div class="bg-gray-800 text-white p-4 rounded-lg flex items-center space-x-4 shadow-lg">
+              <div>
+                <p class="text-xs uppercase text-gray-400">Spotify Üzerinden Birlikte Dinlemek İçin Davet Et</p>
+                <h2 class="text-lg font-semibold">${msg.song.title}</h2>
+                <p class="text-sm text-gray-400">${msg.song.artist}</p>
+                <a href="${msg.song.spotifyLink}" target="_blank" class="mt-2 bg-green-500 text-white text-xs px-3 py-1 rounded-full flex items-center">
+                  <i class="fas fa-play mr-2"></i> Oynat
+                </a>
+              </div>
+              <img alt="Album cover" class="w-20 h-20 rounded-lg" src="${msg.song.albumImage}" />
+            </div>
+          `;
+        } else {
+          // Normal Mesaj
+          messageDiv.innerHTML = `
+            <div>
+              <div class="${isCurrentUser ? 'bg-green-500 text-white' : 'bg-gray-700'} p-3 rounded-lg">
+                <p class="text-sm">${msg.content}</p>
+              </div>
+              <span class="text-xs text-gray-400">${msg.timestamp}</span>
+            </div>
+          `;
         }
-
-        const data = await response.json();
-
-        // Loading metnini temizle
-        chatMessages.innerHTML = "";
-
-        data.forEach((msg) => {
-            const messageDiv = document.createElement("div");
-            messageDiv.className = `flex w-full mt-2 space-x-3 max-w-xs ${
-                msg.sender_id === currentUser.id ? "ml-auto justify-end" : ""
-            }`;
-
-            messageDiv.innerHTML = `
-                <div>
-                    <div class="${
-                        msg.sender_id === currentUser.id
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-300"
-                    } p-3 rounded-lg">
-                        <p class="text-sm">${msg.content}</p>
-                    </div>
-                    <span class="text-xs text-gray-500">${new Date(msg.timestamp).toLocaleTimeString()}</span>
-                </div>`;
-            chatMessages.appendChild(messageDiv);
-        });
+        chatMessagesEl.appendChild(messageDiv);
+      });
     } catch (error) {
-        console.error("Error loading messages:", error);
-        chatMessages.innerHTML = '<p class="text-gray-500 text-center mt-4">Failed to load messages.</p>';
+      console.error('Mesajları yüklerken hata:', error);
+      chatMessagesEl.innerHTML = '<p class="text-gray-500 text-center">Failed to load messages.</p>';
     }
-}
+  }
+  
+        
 
 // Function: Send Message (API çağrısı içeren versiyon)
 async function sendMessage(senderId, receiverId, content) {
@@ -194,15 +186,3 @@ async function sendMessage(senderId, receiverId, content) {
     }
 }
 
-/* Alternatif örnek: Basit mesaj ekleme (API çağrısı yerine sadece DOM güncellemesi)
-function sendMessageSimple(message) {
-    console.log(`Sending message: ${message}`);
-    const chatMessages = document.getElementById("chat-messages");
-    const messageElement = document.createElement("div");
-    messageElement.className = "self-end bg-blue-100 text-blue-800 rounded-lg p-2 mb-2 max-w-xs";
-    messageElement.textContent = message;
-    chatMessages.appendChild(messageElement);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-} */
-
-    

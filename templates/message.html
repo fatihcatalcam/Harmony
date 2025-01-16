@@ -5,120 +5,323 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Chat Screen</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- SocketIO kütüphanesi -->
-  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js" integrity="sha384-..." crossorigin="anonymous"></script>
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
   <style>
     body { font-family: 'Roboto', sans-serif; }
   </style>
 </head>
-<body class="bg-gray-100 h-screen flex">
-  <!-- Sol Bölüm: Chat Listesi (Opsiyonel) -->
-  <div class="w-1/4 bg-white border-r border-gray-200 flex flex-col">
-    <div class="p-4 border-b border-gray-200 flex items-center">
-      <button class="text-gray-600" onclick="window.history.back();">
+<body class="bg-gray-900 text-white h-screen flex">
+  <!-- Sol Bölüm: Chat Listesi -->
+  <div class="w-1/4 bg-gray-800 border-r border-gray-700 flex flex-col">
+    <div class="p-4 border-b border-gray-700 flex items-center">
+      <button class="text-green-500 hover:text-green-300" onclick="window.location.href='{{ url_for('index1') }}'">
         <i class="fas fa-arrow-left"></i>
       </button>
-      <h2 class="text-lg font-semibold ml-4">Chats</h2>
+      <h2 class="text-lg font-semibold ml-4 text-white">Chats</h2>
     </div>
     <div class="flex-grow overflow-auto">
-      <!-- Örnek Chat Listesi Öğesi -->
-      <div class="p-4 flex items-center border-b border-gray-200">
-        <img alt="User profile picture" class="rounded-full h-12 w-12" src="https://placehold.co/50x50"/>
+      {% for match in matches %}
+      <a href="{{ url_for('messages', user_id=match.id) }}" class="block p-4 flex items-center border-b border-gray-700 hover:bg-gray-700">
+        <img alt="User profile picture" class="rounded-full h-12 w-12" src="{{ match.profile_image or 'https://placehold.co/50x50' }}"/>
         <div class="ml-4">
-          <p class="text-sm font-medium">Sample User</p>
-          <p class="text-xs text-gray-500">Hey! How are you?</p>
+          <p class="text-sm font-medium text-white">{{ match.display_name }}</p>
         </div>
-      </div>
+      </a>
+      {% endfor %}
     </div>
   </div>
-  
+
   <!-- Sağ Bölüm: Sohbet Ekranı -->
-  <div class="flex flex-col flex-grow h-screen">
-    <!-- Chat Header -->
-    <div class="flex items-center p-4 bg-white border-b border-gray-200">
+  <div class="flex flex-col flex-grow h-screen bg-gray-900">
+    <div class="flex items-center p-4 bg-gray-800 border-b border-gray-700">
       <img alt="User profile picture" class="rounded-full h-12 w-12" src="{{ user.profile_image or 'https://placehold.co/50x50' }}"/>
       <div class="ml-4">
-        <p id="chat-user-name" class="text-lg font-medium">{{ user.display_name }}</p>
+        <p id="chat-user-name" class="text-lg font-medium text-white">{{ user.display_name }}</p>
       </div>
     </div>
-    
-    <!-- Chat Messages -->
-    <div id="chat-messages" class="flex flex-col flex-grow h-0 p-4 overflow-auto bg-gray-100">
+
+    <div id="chat-messages" class="flex flex-col flex-grow h-0 p-4 overflow-auto bg-gray-900">
       {% if messages %}
         {% for msg in messages %}
           <div class="flex w-full mt-2 space-x-3 max-w-xs {% if msg.sender_id == session.get('user_id') %}ml-auto justify-end{% endif %}">
             <div>
-              <div class="{% if msg.sender_id == session.get('user_id') %}bg-blue-600 text-white{% else %}bg-gray-300{% endif %} p-3 rounded-lg">
+              <div class="{% if msg.sender_id == session.get('user_id') %}bg-green-500 text-white{% else %}bg-gray-700{% endif %} p-3 rounded-lg">
                 <p class="text-sm">{{ msg.content }}</p>
               </div>
-              <span class="text-xs text-gray-500">{{ msg.timestamp }}</span>
+              <span class="text-xs text-gray-400">{{ msg.timestamp }}</span>
             </div>
           </div>
         {% endfor %}
       {% else %}
-        <p class="text-gray-500 text-center mt-4">No messages yet. Start chatting!</p>
+        <p class="text-gray-400 text-center mt-4">No messages yet. Start chatting!</p>
       {% endif %}
     </div>
-    
-    <!-- Mesaj Gönderme Formu (SocketIO ile gönderim yapılacak) -->
-    <div class="bg-white p-4 flex items-center">
-      <form id="message-form" class="flex flex-grow" onsubmit="return false;">
-        <!-- Gizli alanlar: sender ve receiver ID -->
+
+    <div class="bg-gray-800 p-4 flex items-center">
+      <form id="message-form" class="flex flex-grow items-center gap-2" onsubmit="return false;">
+        <!-- Metin Mesajı Girişi -->
         <input type="hidden" id="sender-id" value="{{ session.get('user_id') }}">
         <input type="hidden" id="receiver-id" value="{{ user.id }}">
-        <input name="message" id="message-input" class="flex-grow border rounded-full py-2 px-4 mr-2 text-sm" placeholder="Type a message..." type="text"/>
-        <button type="submit" id="send-button" class="bg-blue-600 text-white rounded-full p-2">
+        <input name="message" id="message-input" 
+               class="flex-grow border border-gray-700 rounded-full py-2 px-4 text-sm bg-gray-700 text-white placeholder-gray-400" 
+               placeholder="Type a message..." type="text"
+               autocomplete="off"/>
+              
+        <!-- Mesaj Gönder Butonu -->
+        <button type="submit" id="send-button" class="bg-green-500 text-white rounded-full p-3 hover:bg-green-400 ml-[-5px]">
           <i class="fas fa-paper-plane"></i>
         </button>
       </form>
-    </div>
+    
+      <!-- Fotoğraf Yükleme Butonu -->
+      <div class="relative">
+        <!-- Ataç Butonu -->
+        <button id="attach-button" class="cursor-pointer bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-md flex items-center gap-2">
+          <i class="fas fa-paperclip"></i>
+        </button>
+      
+        <!-- Menü -->
+        <div id="attach-menu" class="hidden bg-gray-800 text-white p-3 rounded-md shadow-md">
+          <button id="camera-button" class="block mb-2 hover:text-green-500">
+            <i class="fas fa-camera"></i> Kamera
+          </button>
+          <button id="song-button" class="block hover:text-green-500">
+            <i class="fas fa-music"></i> Şarkı Gönder
+          </button>
+        </div>
+      </div>
+      <div id="song-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-gray-800 text-white p-6 rounded-lg shadow-lg w-96">
+          <h2 class="text-lg font-semibold mb-4">Şarkı Gönder</h2>
+          <label for="song-name" class="block text-sm font-medium mb-2">Şarkı İsmi</label>
+          <input
+            id="song-name"
+            type="text"
+            placeholder="Şarkı adını yazın..."
+            class="w-full p-2 rounded-md bg-gray-700 text-white mb-4"
+          />
+          <button
+            id="search-song"
+            class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md w-full"
+          >
+            Şarkıyı Ara
+          </button>
+          <button
+            id="close-modal"
+            class="mt-4 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md w-full"
+          >
+            İptal
+          </button>
+        </div>
+      </div>
+            
+      
+    
+    
   </div>
 
   <script>
-    // SocketIO istemci tarafı kodu
     const socket = io();
-
     const senderId = document.getElementById('sender-id').value;
     const receiverId = document.getElementById('receiver-id').value;
-    // Ortak odanın adı, iki ID'yi sıralı birleştiriyoruz
     const room = [senderId, receiverId].sort().join('_');
 
-    // Odaya katılma
     socket.emit('join', { sender_id: senderId, receiver_id: receiverId });
 
-    // Mesaj formu gönderim
     document.getElementById('message-form').addEventListener('submit', function(e) {
       e.preventDefault();
-      const messageInput = document.getElementById('message-input');
-      const content = messageInput.value.trim();
+      const content = document.getElementById('message-input').value.trim();
       if (!content) return;
       socket.emit('send_message', { sender_id: senderId, receiver_id: receiverId, content: content });
-      messageInput.value = "";
+      document.getElementById('message-input').value = "";
     });
 
-    // Yeni mesaj alındığında
     socket.on('receive_message', function(data) {
-      const chatMessagesEl = document.getElementById("chat-messages");
-      const messageDiv = document.createElement("div");
+      const chatMessagesEl = document.getElementById('chat-messages');
       const isCurrentUser = data.sender_id == senderId;
+      const messageDiv = document.createElement("div");
       messageDiv.className = `flex w-full mt-2 space-x-3 max-w-xs ${isCurrentUser ? "ml-auto justify-end" : ""}`;
       messageDiv.innerHTML = `
         <div>
-          <div class="${isCurrentUser ? "bg-blue-600 text-white" : "bg-gray-300"} p-3 rounded-lg">
+          <div class="${isCurrentUser ? "bg-green-500 text-white" : "bg-gray-700"} p-3 rounded-lg">
             <p class="text-sm">${data.content}</p>
           </div>
-          <span class="text-xs text-gray-500">${data.timestamp}</span>
+          <span class="text-xs text-gray-400">${data.timestamp}</span>
         </div>
       `;
       chatMessagesEl.appendChild(messageDiv);
       chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
     });
 
-    socket.on('error', function(data) {
-      console.error('Socket error:', data);
-    });
+    window.onload = function() {
+      var chatMessagesEl = document.getElementById('chat-messages');
+      if (chatMessagesEl) {
+        chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+      }
+    };
+
+socket.on('receive_song', function (data) {
+  const chatMessagesEl = document.getElementById('chat-messages');
+  const isCurrentUser = data.sender_id == document.getElementById('sender-id').value;
+
+  const songDiv = document.createElement('div');
+  songDiv.className = `flex w-full mt-2 space-x-3 max-w-xs ${isCurrentUser ? 'ml-auto justify-end' : ''}`;
+  songDiv.innerHTML = `
+    <div class="bg-gray-800 text-white p-4 rounded-lg flex items-center space-x-4 shadow-lg">
+      <div>
+        <p class="text-xs uppercase text-gray-400">Spotify Üzerinden Birlikte Dinlemek İçin Davet Et</p>
+        <h2 class="text-lg font-semibold">${data.song.title}</h2>
+        <p class="text-sm text-gray-400">${data.song.artist}</p>
+        <a href="${data.song.spotifyLink}" target="_blank" class="mt-2 bg-green-500 text-white text-xs px-3 py-1 rounded-full flex items-center">
+          <i class="fas fa-play mr-2"></i> Oynat
+        </a>
+      </div>
+      <img alt="Album cover" class="w-20 h-20 rounded-lg" src="${data.song.albumImage}" />
+    </div>
+  `;
+  chatMessagesEl.appendChild(songDiv);
+  chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+});
+// Ataç butonuna tıklayınca menüyü aç/kapat
+document.getElementById('attach-button').addEventListener('click', function () {
+  const menu = document.getElementById('attach-menu');
+  if (menu.classList.contains('hidden')) {
+    menu.classList.remove('hidden'); // Menü görünür hale gelir
+  } else {
+    menu.classList.add('hidden'); // Menü gizlenir
+  }
+});
+
+// Tıklama dışında başka bir yere tıklandığında menüyü kapat
+document.addEventListener('click', function (event) {
+  const menu = document.getElementById('attach-menu');
+  const attachButton = document.getElementById('attach-button');
+  if (!menu.contains(event.target) && event.target !== attachButton) {
+    menu.classList.add('hidden');
+  }
+});
+
+const clientId = 'b2de7349f34f421287638527fd0612f1'; // Spotify API Client ID
+const clientSecret = 'b9ad5851cac44363ad7917cb988211ea'; // Spotify API Client Secret
+let accessToken = '';
+
+// Spotify API'den Access Token Al
+async function getSpotifyAccessToken() {
+  const response = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Authorization: `Basic ${btoa(clientId + ':' + clientSecret)}`,
+    },
+    body: 'grant_type=client_credentials',
+  });
+  const data = await response.json();
+  accessToken = data.access_token;
+}
+
+// Şarkıyı Ara
+async function searchSong(songName) {
+  const response = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(songName)}&type=track&limit=1`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  const data = await response.json();
+  return data.tracks.items[0]; // İlk sonuç
+}
+
+// Modal Aç/Kapat
+// Şarkı Gönder Butonu: Sadece Modal Aç
+document.getElementById('song-button').addEventListener('click', function () {
+  document.getElementById('song-modal').classList.remove('hidden'); // Modal açılır
+});
+
+
+
+document.getElementById('close-modal').addEventListener('click', function () {
+  document.getElementById('song-modal').classList.add('hidden');
+});
+
+// Şarkıyı Ara ve Gönder
+document.getElementById('search-song').addEventListener('click', async function () {
+  const songName = document.getElementById('song-name').value.trim();
+  if (!songName) {
+    alert('Lütfen bir şarkı adı girin.');
+    return;
+  }
+
+  try {
+    const song = await searchSong(songName);
+    if (!song) {
+      alert('Şarkı bulunamadı.');
+      return;
+    }
+
+    // Şarkı Bilgilerini HTML'e Yerleştir
+    const chatMessagesEl = document.getElementById('chat-messages');
+    const songDiv = document.createElement('div');
+    songDiv.className = 'flex w-full mt-2 space-x-3 max-w-xs ml-auto justify-end';
+    songDiv.innerHTML = `
+      <div class="bg-gray-800 text-white p-4 rounded-lg flex items-center space-x-4 shadow-lg">
+        <div>
+          <p class="text-xs uppercase text-gray-400">Spotify Üzerinden Birlikte Dinlemek İçin Davet Et</p>
+          <h2 class="text-lg font-semibold">${song.name}</h2>
+          <p class="text-sm text-gray-400">${song.artists[0].name}</p>
+          <a href="${song.external_urls.spotify}" target="_blank" class="mt-2 bg-green-500 text-white text-xs px-3 py-1 rounded-full flex items-center">
+            <i class="fas fa-play mr-2"></i> Oynat
+          </a>
+        </div>
+        <img alt="Album cover" class="w-20 h-20 rounded-lg" src="${song.album.images[0].url}" />
+      </div>
+    `;
+    chatMessagesEl.appendChild(songDiv);
+    chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+
+    // Modal Kapat
+    document.getElementById('song-modal').classList.add('hidden');
+    document.getElementById('song-name').value = '';
+  } catch (error) {
+    console.error('Şarkı arama hatası:', error);
+    alert('Şarkı arama sırasında bir hata oluştu.');
+  }
+});
+
+// Spotify Token'ını Al
+getSpotifyAccessToken();
+
+document.getElementById('file-input').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+      
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const base64Image = e.target.result; // Görüntüyü base64 formatına çevirir
+          const senderId = document.getElementById('sender-id').value;
+          const receiverId = document.getElementById('receiver-id').value;
+      
+          socket.emit('send_image', { sender_id: senderId, receiver_id: receiverId, image: base64Image });
+        };
+        reader.readAsDataURL(file); // Görüntüyü okur
+      });
+      
+      
+      socket.on('receive_image', function(data) {
+        const chatMessagesEl = document.getElementById('chat-messages');
+        const isCurrentUser = data.sender_id == document.getElementById('sender-id').value;
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `flex w-full mt-2 space-x-3 max-w-xs ${isCurrentUser ? 'ml-auto justify-end' : ''}`;
+        messageDiv.innerHTML = `
+          <div>
+            <img src="${data.image}" alt="Sent Image" class="rounded-lg max-w-xs max-h-64">
+            <span class="text-xs text-gray-400">${data.timestamp}</span>
+          </div>
+        `;
+        chatMessagesEl.appendChild(messageDiv);
+        chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+      });
+
   </script>
 </body>
 </html>

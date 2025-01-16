@@ -315,3 +315,64 @@ header img:hover {
   opacity: 0.8;
 }
 
+img {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+.bg-gray-800 {
+  background-color: #2d2d2d;
+}
+
+.text-white {
+  color: #fff;
+}
+
+.rounded-lg {
+  border-radius: 8px;
+}
+
+.shadow-lg {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
+}
+
+.flex {
+  display: flex;
+}
+
+.space-x-4 > *:not(:last-child) {
+  margin-right: 1rem;
+}
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+#attach-menu {
+  position: absolute;
+  bottom: 100%; /* Menü, ataç butonunun üstünde görünecek */
+  right: 0; /* Sağ kenardan hizalanır */
+  transform: translateY(-10px); /* Hafif yukarı kaydırma */
+}
+#song-modal {
+  display: none; /* Varsayılan olarak gizli */
+}
+
+.hidden {
+  display: none;
+}
+
+.fixed {
+  position: fixed;
+}
+
+.inset-0 {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
