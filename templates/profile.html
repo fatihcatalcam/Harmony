@@ -4,61 +4,97 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ user.display_name }}'s Profile</title>
-    <link rel="stylesheet" href="/static/css/profile.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"></link>
+    <script>
+        // Düzenleme formunu açıp kapatma fonksiyonu
+        function toggleEditForm() {
+            const form = document.getElementById('edit-form');
+            form.classList.toggle('hidden');
+        }
+    </script>
 </head>
-<body>
-    <div class="profile-container">
+<body class="bg-gradient-to-br from-green-500 to-black text-white min-h-screen">
+    <div class="max-w-4xl mx-auto p-6 bg-gray-900 bg-opacity-90 rounded-lg shadow-lg mt-10">
         <!-- Geri Dön Butonu -->
-        <a href="/index1" class="btn back-btn">Go Back</a>
+        <a href="/index1" class="inline-block mb-6 px-6 py-2 bg-green-500 text-white text-lg font-bold rounded-full shadow-lg hover:bg-green-600 transform hover:scale-105 transition duration-300">
+            <i class="fas fa-arrow-left mr-2"></i>Go Back
+        </a>
 
         <!-- Kullanıcı Bilgileri -->
-        <div class="user-header">
-            <img src="{{ user.profile_image }}" alt="{{ user.display_name }}">
-            <h1>{{ user.display_name }}</h1>
+        <div class="text-center mb-10">
+            <img src="{{ user.profile_image }}" alt="Profile image of {{ user.display_name }}" class="w-36 h-36 rounded-full mx-auto mb-4 shadow-lg">
+            <h1 class="text-3xl font-bold">{{ user.display_name }}</h1>
+            <p class="text-lg mt-2">{{ user.bio or "Bio: No bio available." }}</p>
+            <p class="text-lg mt-1">Age: {{ user.age or "N/A" }}</p>
+            <p class="text-lg mt-1">Location: {{ user.location or "N/A" }}</p>
+            <button onclick="toggleEditForm()" class="mt-4 px-6 py-2 bg-blue-500 text-white text-lg font-bold rounded-full shadow-lg hover:bg-blue-600 transform hover:scale-105 transition duration-300">
+                <i class="fas fa-edit mr-2"></i>Edit Profile
+            </button>
+        </div>
+
+        <!-- Edit Form -->
+        <div id="edit-form" class="hidden mb-10">
+            <form action="/update_profile" method="POST" class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <div class="mb-4">
+                    <label for="bio" class="block text-sm font-bold mb-2">Bio:</label>
+                    <textarea id="bio" name="bio" class="w-full p-2 rounded-lg bg-gray-700 text-white" rows="3">{{ user.bio }}</textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="age" class="block text-sm font-bold mb-2">Age:</label>
+                    <input type="number" id="age" name="age" class="w-full p-2 rounded-lg bg-gray-700 text-white" value="{{ user.age }}">
+                </div>
+                <div class="mb-4">
+                    <label for="location" class="block text-sm font-bold mb-2">Location:</label>
+                    <input type="text" id="location" name="location" class="w-full p-2 rounded-lg bg-gray-700 text-white" value="{{ user.location }}">
+                </div>
+                <button type="submit" class="w-full px-6 py-2 bg-green-500 text-white text-lg font-bold rounded-full shadow-lg hover:bg-green-600 transform hover:scale-105 transition duration-300">
+                    Save Changes
+                </button>
+            </form>
         </div>
 
         <!-- En Popüler Sanatçılar -->
-        <div class="section">
-            <h2>Top Artists</h2>
+        <div class="mb-10">
+            <h2 class="text-2xl font-bold text-green-500 mb-4">Top Artists</h2>
             {% for artist in user.top_artists %}
-            <div class="list-item">
-                <img src="{{ artist.image }}" alt="{{ artist.name }}">
+            <div class="flex items-center mb-4">
+                <img src="{{ artist.image }}" alt="Image of artist {{ artist.name }}" class="w-20 h-20 rounded-lg mr-4">
                 <div>
-                    <a href="{{ artist.spotify_url }}" target="_blank">{{ artist.name }}</a>
-                    <p>{{ ", ".join(artist.genres) }}</p>
+                    <a href="{{ artist.spotify_url }}" target="_blank" class="text-green-500 text-lg font-bold hover:underline">{{ artist.name }}</a>
+                    <p class="text-sm">{{ ", ".join(artist.genres) }}</p>
                 </div>
             </div>
             {% endfor %}
         </div>
 
         <!-- En Popüler Şarkılar -->
-        <div class="section">
-            <h2>Top Tracks</h2>
+        <div class="mb-10">
+            <h2 class="text-2xl font-bold text-green-500 mb-4">Top Tracks</h2>
             {% for track in user.top_tracks %}
-            <div class="list-item">
-                <img src="{{ track.image }}" alt="{{ track.name }}">
+            <div class="flex items-center mb-4">
+                <img src="{{ track.image }}" alt="Album cover of track {{ track.name }}" class="w-20 h-20 rounded-lg mr-4">
                 <div>
-                    <a href="{{ track.spotify_url }}" target="_blank">{{ track.name }}</a>
-                    <p>Album: {{ track.album }} | Artists: {{ ", ".join(track.artists) }}</p>
+                    <a href="{{ track.spotify_url }}" target="_blank" class="text-green-500 text-lg font-bold hover:underline">{{ track.name }}</a>
+                    <p class="text-sm">Album: {{ track.album }} | Artists: {{ ", ".join(track.artists) }}</p>
                 </div>
             </div>
             {% endfor %}
         </div>
 
         <!-- En Popüler Türler -->
-        <div class="section">
-            <h2>Top Genres</h2>
-            <ul>
+        <div class="mb-10">
+            <h2 class="text-2xl font-bold text-green-500 mb-4">Top Genres</h2>
+            <ul class="flex flex-wrap gap-2">
                 {% for genre in user.genres %}
-                <li>{{ genre }}</li>
+                <li class="bg-gray-700 text-white px-3 py-1 rounded-full">{{ genre }}</li>
                 {% endfor %}
             </ul>
         </div>
     </div>
 
-    <footer>
+    <footer class="text-center mt-10 py-4 bg-black">
         <p>© 2025 Harmony | Built with ❤️ for music lovers.</p>
     </footer>
-    <script src="/static/js/app.js"></script>
 </body>
 </html>

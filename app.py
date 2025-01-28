@@ -37,13 +37,7 @@ class User(db.Model):
     top_artists = db.Column(db.JSON, nullable=True)
     top_tracks = db.Column(db.JSON, nullable=True)
     genres = db.Column(db.JSON, nullable=True)
-  #  content = db.Column(db.Text, nullable=True)  # Eklenen sütun
-   # song_title = db.Column(db.String(255), nullable=True)
-   # song_artist = db.Column(db.String(255), nullable=True)
-  #  song_album_image = db.Column(db.String(255), nullable=True)
-  #  song_spotify_link = db.Column(db.String(255), nullable=True)
-
-
+    
 class Like(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     from_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -88,36 +82,27 @@ def on_join(data):
     join_room(room)
     print(f"Kullanıcılar {sender_id} ve {receiver_id} room: {room}'a katıldı.")
 
-@socketio.on('send_song')
-def handle_send_song(data):
+@socketio.on('send_message')
+def handle_send_message(data):
     sender_id = data.get('sender_id')
     receiver_id = data.get('receiver_id')
-    song = data.get('song')
-
-    if not sender_id or not receiver_id or not song:
+    content = data.get('content')
+    if not sender_id or not receiver_id or not content:
         emit('error', {'error': 'Invalid data'})
         return
-
-    # Şarkıyı Mesaj olarak veritabanına kaydet
-    message = Message(
-        sender_id=sender_id,
-        receiver_id=receiver_id,
-        content=None,  # Normal mesaj içeriği yok
-        song_title=song.get('title'),
-        song_artist=song.get('artist'),
-        song_album_image=song.get('albumImage'),
-        song_spotify_link=song.get('spotifyLink'),
-    )
+    # Mesajı veritabanına kaydet
+    message = Message(sender_id=sender_id, receiver_id=receiver_id, content=content)
     db.session.add(message)
     db.session.commit()
 
     room = get_room(sender_id, receiver_id)
-    emit('receive_song', {
+    message_data = {
         'sender_id': sender_id,
         'receiver_id': receiver_id,
-        'song': song
-    }, room=room)
-
+        'content': content,
+        'timestamp': message.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+    }
+    emit('receive_message', message_data, room=room)
     print("Mesaj gönderildi:", message_data)
 
 # -------------------------------------------------
@@ -239,6 +224,27 @@ def view_profile(user_id):
                            top_artists=user.top_artists,
                            top_tracks=user.top_tracks,
                            genres=user.genres)
+@app.route('/update_profile', methods=['POST'])
+def update_profile():
+    # Kullanıcının oturumunu alın
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('login'))
+
+    # Formdan gelen verileri alın
+    bio = request.form.get('bio')
+    age = request.form.get('age')
+    location = request.form.get('location')
+
+    # Kullanıcıyı veritabanında bulun
+    user = User.query.get(user_id)
+    if not user:
+        return "User not found", 404
+
+    # Kullanıcı bilgilerini güncelle
+    user.bio = bio
+    user.age = age
+    user.location = locatio
 
 @app.route("/find-profiles")
 def find_profiles():
@@ -302,38 +308,6 @@ def check_match(user_id, other_user_id):
     like_from_user = Like.query.filter_by(from_user_id=user_id, to_user_id=other_user_id).first()
     like_from_other = Like.query.filter_by(from_user_id=other_user_id, to_user_id=user_id).first()
     return like_from_user is not None and like_from_other is not None
-@app.route('/check-matches')
-def check_matches():
-    user_id = session.get('user_id')  # Oturumdaki kullanıcı ID'sini alın
-    if not user_id:
-        return redirect('/login')  # Giriş yapılmamışsa login sayfasına yönlendir
-    matches = db.session.query(User).all()  # Tüm kullanıcılar örnek
-
-    # Kullanıcının eşleşmelerini alın
-    matches = (
-        db.session.query(User)
-        .join(Like, Like.to_user_id == User.id)
-        .filter(
-            Like.from_user_id == user_id,
-            Like.to_user_id.in_(
-                db.session.query(Like.from_user_id).filter(Like.to_user_id == user_id)
-            )
-        )
-        .all()
-    )
-
-    # Kullanıcı bilgilerini al
-    user = User.query.get(user_id)
-    profile_picture_url = user.profile_image if user and user.profile_image else 'https://placehold.co/50x50'
-
-    return render_template(
-        'check-matches.html',
-        matches=matches,
-        profile_picture_url=profile_picture_url
-    )
-
-
-
 
 @app.route("/populate-database")
 def populate_database():
@@ -421,51 +395,26 @@ def get_messages_api(receiver_id):
         ((Message.sender_id == user_id) & (Message.receiver_id == receiver_id)) |
         ((Message.sender_id == receiver_id) & (Message.receiver_id == user_id))
     ).order_by(Message.timestamp).all()
-    
-    # Şarkı ve metin mesajlarını JSON formatında döndür
     return jsonify([{
         "id": msg.id,
         "sender_id": msg.sender_id,
         "receiver_id": msg.receiver_id,
         "content": msg.content,
-        "song": {
-            "title": msg.song_title,
-            "artist": msg.song_artist,
-            "albumImage": msg.song_album_image,
-            "spotifyLink": msg.song_spotify_link
-        } if msg.song_title else None,
         "timestamp": msg.timestamp.strftime('%Y-%m-%d %H:%M:%S')
     } for msg in messages])
-
 
 # Sohbet sayfası: HTML şablon render et
 @app.route('/messages/<int:user_id>')
 def messages(user_id):
     current_user_id = session.get("user_id")
-
-    # Sohbet yapılan kullanıcı
     user = User.query.filter_by(id=user_id).first()
     if not user:
         return "User not found", 404
-
-    # Sohbet geçmişini al
     messages = Message.query.filter(
         ((Message.sender_id == current_user_id) & (Message.receiver_id == user_id)) |
         ((Message.sender_id == user_id) & (Message.receiver_id == current_user_id))
     ).order_by(Message.timestamp).all()
-
-    # Eşleşmeleri al
-    matches = db.session.query(User).join(
-        Like, (Like.to_user_id == User.id)
-    ).filter(
-        Like.from_user_id == current_user_id,
-        Like.to_user_id.in_(
-            db.session.query(Like.from_user_id).filter(Like.to_user_id == current_user_id)
-        )
-    ).all()
-
-    return render_template("message.html", messages=messages, user=user, matches=matches)
-
+    return render_template("message.html", messages=messages, user=user)
 
 # Mesaj gönderme (POST)
 @app.route('/messages', methods=['POST'])
@@ -516,71 +465,13 @@ def index1():
         Like.to_user_id.in_(
             db.session.query(Like.from_user_id).filter(Like.to_user_id == user.id)
         )
-    ).limit(3).all()  # Limit ekleniyor
+    ).all()
 
     return render_template("index1.html",
                            user_logged_in=user_logged_in,
                            profile_picture_url=profile_picture_url,
                            matches=matches,
                            user=user)
-
-@socketio.on('send_image')
-def handle_send_image(data):
-    sender_id = data.get('sender_id')
-    receiver_id = data.get('receiver_id')
-    image = data.get('image')  # Base64 formatındaki görüntü
-
-    if not sender_id or not receiver_id or not image:
-        emit('error', {'error': 'Invalid data'})
-        return
-
-    # Mesajı veritabanına kaydedebilirsiniz (isteğe bağlı)
-    # Ancak burada sadece odalara gönderiyoruz
-    room = get_room(sender_id, receiver_id)
-    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    emit('receive_image', {
-        'sender_id': sender_id,
-        'receiver_id': receiver_id,
-        'image': image,
-        'timestamp': timestamp
-    }, room=room)
-@socketio.on('send_song')
-def handle_send_song(data):
-    sender_id = data.get('sender_id')
-    receiver_id = data.get('receiver_id')
-    song = data.get('song')
-
-    if not sender_id or not receiver_id or not song:
-        emit('error', {'error': 'Invalid data'})
-        return
-
-    # Şarkı bilgisini veritabanına kaydet
-    message = Message(
-        sender_id=sender_id,
-        receiver_id=receiver_id,
-        song_title=song.get('title'),
-        song_artist=song.get('artist'),
-        song_album_image=song.get('albumImage'),
-        song_spotify_link=song.get('spotifyLink')
-    )
-    db.session.add(message)
-    db.session.commit()
-
-    # Odaya şarkı bilgisini gönder
-    room = get_room(sender_id, receiver_id)
-    emit('receive_song', {
-        'sender_id': sender_id,
-        'receiver_id': receiver_id,
-        'song': {
-            'title': song.get('title'),
-            'artist': song.get('artist'),
-            'albumImage': song.get('albumImage'),
-            'spotifyLink': song.get('spotifyLink')
-        },
-        'timestamp': message.timestamp.strftime('%Y-%m-%d %H:%M:%S')
-    }, room=room)
-
-
 
 if __name__ == "__main__":
     with app.app_context():
