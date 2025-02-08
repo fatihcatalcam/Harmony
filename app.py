@@ -20,14 +20,20 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(instance_path,
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = "your_secret_key"
 
-# Veritabanı
+# Veritabanı ve Migration
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
+# Geliştirme aşamasında (migration kullanıyorsanız aşağıdaki satırı kaldırabilirsiniz)
+with app.app_context():
+    db.create_all()
 
 # SocketIO nesnesini eventlet asenkron moduyla başlatın
 socketio = SocketIO(app, async_mode="eventlet")
 
+# -------------------------------
 # Modeller
+# -------------------------------
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     spotify_id = db.Column(db.String(100), unique=True, nullable=False)
@@ -37,7 +43,10 @@ class User(db.Model):
     top_artists = db.Column(db.JSON, nullable=True)
     top_tracks = db.Column(db.JSON, nullable=True)
     genres = db.Column(db.JSON, nullable=True)
-    
+    bio = db.Column(db.Text, nullable=True)
+    age = db.Column(db.Integer, nullable=True)
+    location = db.Column(db.String(255), nullable=True)
+
 class Like(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     from_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -59,9 +68,9 @@ SPOTIFY_CLIENT_ID = "b2de7349f34f421287638527fd0612f1"
 SPOTIFY_CLIENT_SECRET = "b9ad5851cac44363ad7917cb988211ea"
 SPOTIFY_REDIRECT_URI = "http://127.0.0.1:5000/callback"
 
-# -------------------------------------------------
+# -------------------------------
 # WebSocket (SocketIO) Olayları
-# -------------------------------------------------
+# -------------------------------
 def get_room(sender_id, receiver_id):
     """İki kullanıcı için ortak room adını oluşturur."""
     return '_'.join(sorted([str(sender_id), str(receiver_id)]))
@@ -90,6 +99,7 @@ def handle_send_message(data):
     if not sender_id or not receiver_id or not content:
         emit('error', {'error': 'Invalid data'})
         return
+
     # Mesajı veritabanına kaydet
     message = Message(sender_id=sender_id, receiver_id=receiver_id, content=content)
     db.session.add(message)
@@ -105,9 +115,9 @@ def handle_send_message(data):
     emit('receive_message', message_data, room=room)
     print("Mesaj gönderildi:", message_data)
 
-# -------------------------------------------------
+# -------------------------------
 # Rotalar
-# -------------------------------------------------
+# -------------------------------
 @app.route("/")
 def home():
     user_logged_in = session.get("user_logged_in", False)
@@ -131,7 +141,9 @@ def profile():
     return render_template("profile.html",
                            user=user,
                            top_artists=user.top_artists,
-                           top_tracks=user.top_tracks)
+                           top_tracks=user.top_tracks,
+                           current_user_id=session.get("user_id"))
+
 
 @app.route("/login")
 def login():
@@ -170,6 +182,7 @@ def callback():
     headers = {"Authorization": f"Bearer {access_token}"}
 
     try:
+        # Kullanıcı profili verilerini çek
         user_profile_url = "https://api.spotify.com/v1/me"
         user_profile_response = requests.get(user_profile_url, headers=headers)
         if user_profile_response.status_code != 200:
@@ -187,13 +200,14 @@ def callback():
         if not spotify_id or not display_name:
             raise ValueError("Incomplete user data from Spotify")
 
+        # Kullanıcıyı veritabanında arayın; varsa güncelleyin, yoksa oluşturun.
         user = User.query.filter_by(spotify_id=spotify_id).first()
         if not user:
             user = User(
                 spotify_id=spotify_id,
                 display_name=display_name,
                 profile_image=profile_image,
-                email=email,
+                email=email
             )
             db.session.add(user)
         else:
@@ -201,7 +215,47 @@ def callback():
             user.profile_image = profile_image
             user.email = email
 
-        # Örnek: Top artists, tracks ve genre hesaplamaları yapılabilir
+        # --- Spotify API'den Top Artists ve Top Tracks Verilerini Al ve Güncelle ---
+        # Top Artists bilgisini çek
+        top_artists_url = "https://api.spotify.com/v1/me/top/artists"
+        top_artists_response = requests.get(top_artists_url, headers=headers)
+        if top_artists_response.status_code == 200:
+            top_artists_data = top_artists_response.json().get("items", [])
+            user.top_artists = [
+                {
+                    "name": artist["name"],
+                    "image": artist["images"][0]["url"] if artist.get("images") else None,
+                    "genres": artist.get("genres", [])
+                }
+                for artist in top_artists_data
+            ]
+        else:
+            # Eğer API çağrısı başarısızsa, boş liste atayabilirsiniz
+            user.top_artists = []
+
+        # Top Tracks bilgisini çek
+        top_tracks_url = "https://api.spotify.com/v1/me/top/tracks"
+        top_tracks_response = requests.get(top_tracks_url, headers=headers)
+        if top_tracks_response.status_code == 200:
+            top_tracks_data = top_tracks_response.json().get("items", [])
+            user.top_tracks = [
+                {
+                    "name": track["name"],
+                    "image": track["album"]["images"][0]["url"] if track["album"].get("images") else None,
+                    "artists": [artist["name"] for artist in track.get("artists", [])]
+                }
+                for track in top_tracks_data
+            ]
+        else:
+            user.top_tracks = []
+
+        # Genres bilgisini, top_artists verilerinden oluşturun
+        combined_genres = set()
+        for artist in user.top_artists or []:
+            for genre in artist.get("genres", []):
+                combined_genres.add(genre)
+        user.genres = list(combined_genres)
+
         db.session.commit()
 
         session["user_logged_in"] = True
@@ -214,6 +268,8 @@ def callback():
     except Exception as e:
         return jsonify({"error": f"Error saving user data: {str(e)}"}), 500
 
+
+
 @app.route("/profile/<int:user_id>")
 def view_profile(user_id):
     user = User.query.get(user_id)
@@ -224,27 +280,30 @@ def view_profile(user_id):
                            top_artists=user.top_artists,
                            top_tracks=user.top_tracks,
                            genres=user.genres)
+
 @app.route('/update_profile', methods=['POST'])
 def update_profile():
-    # Kullanıcının oturumunu alın
     user_id = session.get('user_id')
     if not user_id:
-        return redirect(url_for('login'))
+        return jsonify({"error": "User not logged in"}), 401
 
-    # Formdan gelen verileri alın
     bio = request.form.get('bio')
     age = request.form.get('age')
     location = request.form.get('location')
 
-    # Kullanıcıyı veritabanında bulun
     user = User.query.get(user_id)
     if not user:
-        return "User not found", 404
+        return jsonify({"error": "User not found"}), 404
 
-    # Kullanıcı bilgilerini güncelle
     user.bio = bio
-    user.age = age
-    user.location = locatio
+    try:
+        user.age = int(age) if age else None
+    except ValueError:
+        user.age = None
+    user.location = location
+
+    db.session.commit()
+    return jsonify({"message": "Profile updated successfully!"})
 
 @app.route("/find-profiles")
 def find_profiles():
@@ -308,6 +367,52 @@ def check_match(user_id, other_user_id):
     like_from_user = Like.query.filter_by(from_user_id=user_id, to_user_id=other_user_id).first()
     like_from_other = Like.query.filter_by(from_user_id=other_user_id, to_user_id=user_id).first()
     return like_from_user is not None and like_from_other is not None
+
+@app.route("/check-matches")
+def check_matches():
+    current_user_id = session.get("user_id")
+    if not current_user_id:
+        return render_template("check-matches.html", matches=[])
+
+    likes_received = Like.query.filter_by(to_user_id=current_user_id).with_entities(Like.from_user_id).all()
+    likes_given = Like.query.filter_by(from_user_id=current_user_id).with_entities(Like.to_user_id).all()
+
+    liked_users = {like[0] for like in likes_given}
+    matched_users = [like[0] for like in likes_received if like[0] in liked_users]
+
+    if not matched_users:
+        return render_template("check-matches.html", matches=[])
+
+    matched_profiles = User.query.filter(User.id.in_(matched_users)).all()
+    matches_data = [
+        {
+            "id": user.id,
+            "display_name": user.display_name,
+            "profile_image": user.profile_image,
+            "top_artists": user.top_artists,
+            "top_tracks": user.top_tracks,
+        }
+        for user in matched_profiles
+    ]
+    
+    return render_template("check-matches.html", matches=matches_data)
+
+@app.route('/chat')
+def chat():
+    current_user_id = session.get("user_id")
+    if not current_user_id:
+        return redirect(url_for("login"))
+    
+    # Eşleşme mantığınız:
+    likes_received = Like.query.filter_by(to_user_id=current_user_id).with_entities(Like.from_user_id).all()
+    likes_given = Like.query.filter_by(from_user_id=current_user_id).with_entities(Like.to_user_id).all()
+    liked_users = {like[0] for like in likes_given}
+    matched_ids = [like[0] for like in likes_received if like[0] in liked_users]
+    
+    matches = User.query.filter(User.id.in_(matched_ids)).all()
+    
+    # Diğer sohbet verilerinizi (mevcut mesajlar vb.) de hazırlayın. Bu örnekte sadece matches gönderiyoruz.
+    return render_template("chat.html", matches=matches, current_user_id=current_user_id)
 
 @app.route("/populate-database")
 def populate_database():
@@ -387,7 +492,6 @@ def get_profiles():
     ]
     return jsonify(profiles_data)
 
-# API: Mesajları JSON olarak döndür
 @app.route('/api/messages/<int:receiver_id>')
 def get_messages_api(receiver_id):
     user_id = session.get('user_id')
@@ -403,7 +507,6 @@ def get_messages_api(receiver_id):
         "timestamp": msg.timestamp.strftime('%Y-%m-%d %H:%M:%S')
     } for msg in messages])
 
-# Sohbet sayfası: HTML şablon render et
 @app.route('/messages/<int:user_id>')
 def messages(user_id):
     current_user_id = session.get("user_id")
@@ -416,20 +519,17 @@ def messages(user_id):
     ).order_by(Message.timestamp).all()
     return render_template("message.html", messages=messages, user=user)
 
-# Mesaj gönderme (POST)
 @app.route('/messages', methods=['POST'])
 def send_message():
-    # JSON verisi gönderilmişse
     if request.is_json:
         data = request.get_json()
         sender_id = data.get('sender_id')
         receiver_id = data.get('receiver_id')
         content = data.get('content')
     else:
-        # Form gönderimi (application/x-www-form-urlencoded) durumu
         sender_id = request.form.get('sender_id')
         receiver_id = request.form.get('receiver_id')
-        content = request.form.get('message')  # Formdaki input name="message"
+        content = request.form.get('message')
 
     if not sender_id or not receiver_id or not content:
         return jsonify({"error": "Invalid data"}), 400
@@ -475,5 +575,5 @@ def index1():
 
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()
+        db.create_all()  # Eğer migrate kullanıyorsanız bu satırı kaldırabilirsiniz.
     socketio.run(app, debug=True)

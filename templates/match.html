@@ -246,25 +246,30 @@
             {% for profile in profiles %}
             <div class="card">
                 <h2>{{ profile.display_name }}</h2>
-                <p><strong>Top Genres:</strong> {{ profile.genres[:5] | join(', ') }}</p>
-                <div class="top-artists">
-                    <h3>Top Artists</h3>
-                    {% for artist in profile.top_artists[:3] %}
-                    <div class="artist">
-                        <img src="{{ artist.image or 'https://placehold.co/40x40' }}" alt="{{ artist.name }}">
-                        <p>{{ artist.name }}</p>
+                <p><strong>Top Genres:</strong> {{ (profile.genres or [])[:5] | join(', ') }}</p>
+
+                    <!-- En Popüler Sanatçılar -->
+                    <div class="top-artists">
+                        <h3>Top Artists</h3>
+                        {% for artist in (profile.top_artists or [])[:3] %}
+                        <div class="artist">
+                            <img src="{{ artist.image or 'https://placehold.co/40x40' }}" alt="{{ artist.name }}">
+                            <p>{{ artist.name }}</p>
+                        </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
-                </div>
-                <div class="top-tracks">
-                    <h3>Top Tracks</h3>
-                    {% for track in profile.top_tracks[:3] %}
-                    <div class="song">
-                        <img src="{{ track.image or 'https://placehold.co/40x40' }}" alt="{{ track.name }}">
-                        <p>{{ track.name }}</p>
+
+                    <!-- En Popüler Şarkılar -->
+                    <div class="top-tracks">
+                        <h3>Top Tracks</h3>
+                        {% for track in (profile.top_tracks or [])[:3] %}
+                        <div class="song">
+                            <img src="{{ track.image or 'https://placehold.co/40x40' }}" alt="{{ track.name }}">
+                            <p>{{ track.name }}</p>
+                        </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
-                </div>
+
                 <div class="actions">
                     <button class="btn pass"><i class="fas fa-times"></i></button>
                     <button class="btn like"><i class="fas fa-heart"></i></button>
