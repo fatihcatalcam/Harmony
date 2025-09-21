@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmony | Chat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --bg-panel: rgba(25, 20, 20, 0.85);
+            --accent: #1db954;
+            --text-light: #f3f3f3;
+            --text-muted: #a0a0a0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle at top left, #2a2a2a, #121212 50%, #050505 100%);
+            color: var(--text-light);
+        }
+
+        .chat-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(8px);
+        }
+
+        .matches-panel {
+            width: 320px;
+            min-height: 100vh;
+            background: linear-gradient(180deg, rgba(18, 18, 18, 0.95) 0%, rgba(18, 18, 18, 0.75) 100%);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            padding: 24px 28px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .panel-title {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+        }
+
+        .match-list {
+            list-style: none;
+            margin: 0;
+            padding: 12px 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .match-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+            padding: 16px 24px;
+            background: transparent;
+            border: none;
+            color: inherit;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .match-item:hover,
+        .match-item.active {
+            background: rgba(29, 185, 84, 0.15);
+            transform: translateX(4px);
+        }
+
+        .match-item img {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(29, 185, 84, 0.35);
+        }
+
+        .match-name {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .match-empty {
+            text-align: center;
+            margin-top: 80px;
+            padding: 0 24px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .chat-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(180deg, rgba(15, 15, 15, 0.92) 0%, rgba(12, 12, 12, 0.95) 100%);
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 24px 32px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            min-height: 96px;
+        }
+
+        .chat-header img {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(29, 185, 84, 0.5);
+        }
+
+        .chat-header .chat-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .chat-header .chat-status {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .message-feed {
+            flex: 1;
+            padding: 32px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .placeholder {
+            margin: auto;
+            text-align: center;
+            color: var(--text-muted);
+            max-width: 360px;
+            line-height: 1.8;
+        }
+
+        .bubble {
+            max-width: 65%;
+            padding: 14px 18px;
+            border-radius: 18px;
+            line-height: 1.5;
+            font-size: 0.95rem;
+            position: relative;
+        }
+
+        .bubble.sent {
+            margin-left: auto;
+            background: var(--accent);
+            color: #0d0d0d;
+        }
+
+        .bubble.received {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .timestamp {
+            display: block;
+            margin-top: 6px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .chat-input {
+            padding: 24px 32px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.35);
+        }
+
+        .chat-form {
+            display: flex;
+            gap: 16px;
+        }
+
+        .chat-form input[type="text"] {
+            flex: 1;
+            padding: 14px 18px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-light);
+            font-size: 0.95rem;
+            transition: border 0.2s ease, background 0.2s ease;
+        }
+
+        .chat-form input[type="text"]:focus {
+            outline: none;
+            border-color: rgba(29, 185, 84, 0.65);
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .chat-form button {
+            padding: 0 28px;
+            border-radius: 999px;
+            border: none;
+            background: var(--accent);
+            color: #111;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .chat-form button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px rgba(29, 185, 84, 0.25);
+        }
+
+        .chat-form button:disabled {
+            background: rgba(29, 185, 84, 0.35);
+            color: rgba(0, 0, 0, 0.45);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        @media (max-width: 960px) {
+            body {
+                background: #121212;
+            }
+
+            .chat-wrapper {
+                flex-direction: column;
+                max-width: none;
+            }
+
+            .matches-panel {
+                width: 100%;
+                min-height: auto;
+                max-height: 320px;
+            }
+
+            .chat-panel {
+                min-height: calc(100vh - 320px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-wrapper">
+        <aside class="matches-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Your Matches</h2>
+            </div>
+
+            {% if matches %}
+                <ul class="match-list">
+                    {% for match in matches %}
+                        <li>
+                            <button class="match-item" data-user-id="{{ match.id }}" data-name="{{ match.display_name }}" data-image="{{ match.profile_image or 'https://placehold.co/80x80' }}">
+                                <img src="{{ match.profile_image or 'https://placehold.co/80x80' }}" alt="{{ match.display_name }}">
+                                <span class="match-name">{{ match.display_name }}</span>
+                            </button>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="match-empty">
+                    <p>No matches yet.</p>
+                    <p>Keep discovering new music lovers to start a conversation.</p>
+                </div>
+            {% endif %}
+        </aside>
+
+        <section class="chat-panel">
+            <header class="chat-header">
+                <img id="chat-avatar" src="https://placehold.co/120x120" alt="Chat avatar" hidden>
+                <div>
+                    <h3 id="chat-name" class="chat-name">Select a match to start chatting</h3>
+                    <p id="chat-status" class="chat-status">Pick someone from your matches to begin.</p>
+                </div>
+            </header>
+
+            <div id="message-feed" class="message-feed">
+                <div id="chat-placeholder" class="placeholder">
+                    <h4>Welcome to Harmony chat</h4>
+                    <p>Select a match on the left to open a conversation and start exchanging messages in real-time.</p>
+                </div>
+            </div>
+
+            <footer class="chat-input">
+                <form id="chat-form" class="chat-form" autocomplete="off">
+                    <input type="hidden" id="current-user-id" value="{{ current_user_id }}">
+                    <input type="text" id="message-input" placeholder="Type a message..." disabled>
+                    <button type="submit" id="send-button" disabled>Send</button>
+                </form>
+            </footer>
+        </section>
+    </div>
+
+    <script>
+        const socket = io();
+        const currentUserId = parseInt(document.getElementById('current-user-id').value, 10);
+        const matchButtons = document.querySelectorAll('.match-item');
+        const chatNameEl = document.getElementById('chat-name');
+        const chatStatusEl = document.getElementById('chat-status');
+        const chatAvatarEl = document.getElementById('chat-avatar');
+        const placeholderEl = document.getElementById('chat-placeholder');
+        const messageFeedEl = document.getElementById('message-feed');
+        const messageInputEl = document.getElementById('message-input');
+        const sendButtonEl = document.getElementById('send-button');
+        const chatFormEl = document.getElementById('chat-form');
+
+        let activeChatUserId = null;
+        let joinedRooms = new Set();
+
+        function createMessageBubble(content, sentByCurrentUser, timestampText) {
+            const wrapper = document.createElement('div');
+            const bubble = document.createElement('div');
+            bubble.className = `bubble ${sentByCurrentUser ? 'sent' : 'received'}`;
+            bubble.textContent = content;
+
+            if (timestampText) {
+                const stamp = document.createElement('span');
+                stamp.className = 'timestamp';
+                stamp.textContent = timestampText;
+                bubble.appendChild(stamp);
+            }
+
+            wrapper.appendChild(bubble);
+            return wrapper;
+        }
+
+        function setActiveConversation(userId, displayName, avatar) {
+            activeChatUserId = parseInt(userId, 10);
+            chatNameEl.textContent = displayName;
+            chatStatusEl.textContent = 'Say hi and share your latest discoveries!';
+            chatAvatarEl.src = avatar || 'https://placehold.co/120x120';
+            chatAvatarEl.hidden = false;
+            messageInputEl.disabled = false;
+            sendButtonEl.disabled = false;
+            placeholderEl?.remove();
+            messageFeedEl.innerHTML = '';
+
+            if (!joinedRooms.has(activeChatUserId)) {
+                socket.emit('join', { sender_id: currentUserId, receiver_id: activeChatUserId });
+                joinedRooms.add(activeChatUserId);
+            }
+
+            matchButtons.forEach(btn => btn.classList.remove('active'));
+            const activeBtn = Array.from(matchButtons).find(btn => parseInt(btn.dataset.userId, 10) === activeChatUserId);
+            activeBtn?.classList.add('active');
+        }
+
+        matchButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const { userId, name, image } = button.dataset;
+                setActiveConversation(userId, name, image);
+            });
+        });
+
+        chatFormEl.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const content = messageInputEl.value.trim();
+            if (!content || !activeChatUserId) {
+                return;
+            }
+
+            socket.emit('send_message', {
+                sender_id: currentUserId,
+                receiver_id: activeChatUserId,
+                content: content
+            });
+
+            const messageBubble = createMessageBubble(content, true);
+            messageFeedEl.appendChild(messageBubble);
+            messageFeedEl.scrollTop = messageFeedEl.scrollHeight;
+            messageInputEl.value = '';
+        });
+
+        socket.on('receive_message', (data) => {
+            if (!activeChatUserId) {
+                return;
+            }
+
+            const involvesCurrentConversation =
+                (data.sender_id === currentUserId && data.receiver_id === activeChatUserId) ||
+                (data.sender_id === activeChatUserId && data.receiver_id === currentUserId);
+
+            if (!involvesCurrentConversation) {
+                return;
+            }
+
+            const messageBubble = createMessageBubble(
+                data.content,
+                data.sender_id === currentUserId,
+                data.timestamp
+            );
+            messageFeedEl.appendChild(messageBubble);
+            messageFeedEl.scrollTop = messageFeedEl.scrollHeight;
+        });
+    </script>
+</body>
+</html>
