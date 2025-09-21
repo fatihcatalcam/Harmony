@@ -1,175 +1,210 @@
-// DOM Element Selections 
-const matchProfilesContainer = document.getElementById("profiles-container");
-let currentProfileIndex = 0; // To track the current profile
-let profiles = []; // Array to store profiles
+/***********************************************************
+ * find_match_interact.js - Interact.js ile Tinder-Style Swipe & Animasyonlar
+ ***********************************************************/
 
-// Fetch Profiles and Initialize
-document.addEventListener("DOMContentLoaded", async () => {
-    try {
-        const response = await fetch("/api/get_profiles");
-        if (!response.ok) throw new Error("Failed to fetch profiles");
+// DOMContentLoaded: Kartları hazırla, draggable yap ve Interact.js ile sürükleme mantığını başlat.
+document.addEventListener("DOMContentLoaded", function() {
+  const container = document.querySelector(".container");
+  const cards = Array.from(document.querySelectorAll(".card"));
 
-        profiles = await response.json();
+  if (!cards || cards.length === 0) {
+    container.innerHTML = `<p class="text-center text-gray-500">No profiles to display!</p>`;
+    return;
+  }
 
-        if (profiles.length === 0) {
-            matchProfilesContainer.innerHTML = `
-                <p class="text-center text-gray-500">There are no more profiles to like. Try again later!</p>
-            `;
-            return;
-        }
+  // Her kart için başlangıç kümülatif dx ve dy değerlerini sıfırlıyoruz.
+  cards.forEach(card => {
+    card.currentDx = 0; // kümülatif x yönü
+    card.currentDy = 0; // kümülatif y yönü
+    card.style.touchAction = "none"; // dokunmatik cihazlarda default scroll davranışını engelle
+  });
 
-        // Show the first profile
-        showProfile(currentProfileIndex);
-    } catch (error) {
-        console.error("Error loading profiles:", error);
-        matchProfilesContainer.innerHTML = `
-            <p class="text-center text-gray-500">An error occurred while loading profiles. Please try again later!</p>
-        `;
+  // Interact.js ile kartları draggable yapıyoruz.
+  interact('.card').draggable({
+    inertia: true,
+    listeners: {
+      move: dragMoveListener,
+      end: dragEndListener
     }
+  });
+  
+
+  // Sürükleme hareketi sırasında çalışan fonksiyon
+  function dragMoveListener(event) {
+    const target = event.target;
+    // Kümülatif dx ve dy değerlerine, o anki hareket miktarını ekliyoruz.
+    target.currentDx = (target.currentDx || 0) + event.dx;
+    target.currentDy = (target.currentDy || 0) + event.dy;
+    // Debug log: Her hareket adımındaki dx, dy ve toplam x
+    console.log(`dragMoveListener: dx: ${event.dx} dy: ${event.dy} cumulative x: ${target.currentDx}`);
+    target.style.transform = `translate(${target.currentDx}px, ${target.currentDy}px)`;
+  }
+
+  // Sürükleme bittiğinde çalışan fonksiyon
+  async function dragEndListener(event) {
+    const target = event.target;
+  
+    // gerçek konumu CSS transformdan al
+    const style = window.getComputedStyle(target);
+    const matrix = new DOMMatrixReadOnly(style.transform);
+    const cumulativeX = matrix.m41;
+  
+    console.log("Gerçek cumulativeX:", cumulativeX);
+  
+    if (cumulativeX > 50) {
+      await handleLike(target);
+    } else if (cumulativeX < -50) {
+      handlePass(target);
+    } else {
+      target.style.transition = "transform 0.3s";
+      target.style.transform = "translate(0px, 0px)";
+      setTimeout(() => {
+        target.currentDx = 0;
+        target.currentDy = 0;
+      }, 350);
+    }
+  }
+  
+  
+
+  // Kartı sağa fırlatarak "like" işlemi yapan fonksiyon
+  async function handleLike(card) {
+    card.style.transition = "transform 0.5s";
+    card.style.transform = "translate(400px, 0px) rotate(30deg)";
+    const profileId = card.getAttribute("data-id");
+    
+    console.log("Like edilen profil ID:", profileId); // Bunu mutlaka ekle
+    
+    try {
+      const res = await fetch("/api/like_profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile_id: profileId })
+      });
+  
+      if (!res.ok) throw new Error(`Failed to like profile: ${res.statusText}`);
+      const result = await res.json();
+      
+      console.log("Backend response:", result); // Backend'den gelen cevabı gör
+  
+      if (result.message === "It's a match!") {
+        showMatchText();
+      } else {
+        showHeart();
+      }
+    } catch (error) {
+      console.error("Error liking profile:", error);
+      alert("An error occurred. Please try again.");
+    }
+    
+    setTimeout(() => {
+      card.remove();
+      checkEmptyStack();
+    }, 500);
+  }
+  
+
+  // Kartı sola fırlatarak "pass" işlemi yapan fonksiyon
+  function handlePass(card) {
+    card.style.transition = "transform 0.5s";
+    card.style.transform = "translate(-400px, 0px) rotate(-30deg)";
+    showCross();
+    setTimeout(() => {
+      card.remove();
+      checkEmptyStack();
+    }, 500);
+  }
+
+  // Eğer tüm kartlar kaldırılmışsa, container'a mesaj ekler.
+  function checkEmptyStack() {
+    const remaining = container.querySelectorAll(".card");
+    if (remaining.length === 0) {
+      container.innerHTML = `<p class="text-center text-gray-500">No more profiles!</p>`;
+    }
+  }
+
+  // Opsiyonel: Kart üzerindeki like/pass butonlarına click event ekleyelim.
+  cards.forEach(card => {
+    const passBtn = card.querySelector(".btn.pass");
+    const likeBtn = card.querySelector(".btn.like");
+  
+    if (passBtn) {
+      passBtn.addEventListener("click", () => {
+        handlePass(card);
+      });
+    }
+    if (likeBtn) {
+      likeBtn.addEventListener("click", async () => {
+        await handleLike(card);
+      });
+    }
+  });
+  
+  
 });
 
-function showProfile(index) {
-    matchProfilesContainer.innerHTML = ""; // Clear previous profile
-
-    if (index >= profiles.length) {
-        matchProfilesContainer.innerHTML = `
-            <p class="text-center text-gray-500">No more profiles to display!</p>
-        `;
-        return;
-    }
-
-    const profile = profiles[index];
-    const profileCard = document.createElement("div");
-    profileCard.className = "card";
-
-    profileCard.innerHTML = `
-        <h2>${profile.display_name}</h2>
-        <p><strong>Top Genres:</strong> ${profile.genres.join(", ")}</p>
-        <div class="top-artists">
-            <h3>Top Artists</h3>
-            ${profile.top_artists
-                .map(
-                    artist => `
-                    <div class="artist">
-                        <img src="${artist.image || 'https://placehold.co/40x40'}" alt="${artist}" class="artist-img">
-                        <p>${artist.name}</p>
-                    </div>`
-                )
-                .join("")}
-        </div>
-        <div class="top-tracks">
-            <h3>Top Tracks</h3>
-            ${profile.top_tracks
-                .map(
-                    track => `
-                    <div class="song">
-                        <img src="${track.image || 'https://placehold.co/40x40'}" alt="${track}" class="track-img">
-                        <p>${track.name}</p>
-                    </div>`
-                )
-                .join("")}
-        </div>
-        <div class="actions">
-            <button class="btn pass" id="pass-btn-${profile.id}" data-id="${profile.id}">
-                <i class="fas fa-times"></i>
-            </button>
-            <button class="btn like" id="like-btn-${profile.id}" data-id="${profile.id}">
-                <i class="fas fa-heart"></i>
-            </button>
-        </div>
-    `;
-
-    matchProfilesContainer.appendChild(profileCard);
-
-    // Attach Event Listeners for Like and Pass Buttons
-    document.getElementById(`like-btn-${profile.id}`).addEventListener("click", () => likeProfile(profile.id));
-    document.getElementById(`pass-btn-${profile.id}`).addEventListener("click", () => passProfile(profile.id));
+/***********************************************************
+ * Animasyon Fonksiyonları
+ ***********************************************************/
+function showHeart() {
+  const heart = document.createElement("div");
+  heart.className = "heart-animation";
+  // Stil ve içerik: Kalp simgesi, örneğin Font Awesome kullanarak
+  heart.innerHTML = "<i class='fas fa-heart' style='font-size: 80px; color: rgba(255,255,255,0.8);'></i>";
+  // Merkezi ve üstte overlay gibi gösterim için konumlandırma
+  heart.style.position = "fixed";
+  heart.style.top = "50%";
+  heart.style.left = "50%";
+  heart.style.transform = "translate(-50%, -50%)";
+  heart.style.zIndex = "2000";
+  heart.style.opacity = "0";
+  heart.style.transition = "opacity 0.5s ease, transform 0.5s ease";
+  document.body.appendChild(heart);
+  // Animasyonu tetikleyelim
+  setTimeout(() => {
+    heart.style.opacity = "1";
+    heart.style.transform = "translate(-50%, -50%) scale(1.2)";
+  }, 50);
+  // Animasyon bittikten sonra kaldır
+  setTimeout(() => { heart.remove(); }, 1000);
 }
 
-
-
-// Like Profile Functionality
-async function likeProfile(profileId) {
-    try {
-        const response = await fetch("/api/like_profile", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ profile_id: profileId }),
-        });
-
-        if (!response.ok) throw new Error("Failed to like profile");
-        const result = await response.json();
-
-        if (result.message === "It's a match!") {
-            alert("You've got a match! 🎉");
-        } else {
-            alert("Profile liked!");
-        }
-
-        // Show the next profile
-        currentProfileIndex++;
-        showProfile(currentProfileIndex);
-    } catch (error) {
-        console.error("Error liking profile:", error);
-        alert("An error occurred. Please try again.");
-    }
+function showMatchText() {
+  const matchText = document.createElement("div");
+  matchText.className = "match-animation";
+  matchText.innerText = "MATCH";
+  matchText.style.position = "fixed";
+  matchText.style.top = "50%";
+  matchText.style.left = "50%";
+  matchText.style.transform = "translate(-50%, -50%)";
+  matchText.style.fontSize = "80px";
+  matchText.style.color = "rgba(255,255,255,0.9)";
+  matchText.style.zIndex = "2000";
+  matchText.style.opacity = "0";
+  matchText.style.transition = "opacity 0.5s ease, transform 0.5s ease";
+  document.body.appendChild(matchText);
+  setTimeout(() => {
+    matchText.style.opacity = "1";
+    matchText.style.transform = "translate(-50%, -50%) scale(1.2)";
+  }, 50);
+  setTimeout(() => { matchText.remove(); }, 1000);
 }
 
-// Pass Profile Functionality
-function passProfile(profileId) {
-    alert(`You passed on profile ID: ${profileId}`);
-
-    // Show the next profile
-    currentProfileIndex++;
-    showProfile(currentProfileIndex);
-}
-
-// Function to Show Match Overlay
-function showMatchOverlay() {
-    const overlay = document.getElementById("match-overlay");
-    overlay.classList.add("show"); // Overlay'i görünür yap
-
-    // 3 saniye sonra overlay'i gizle ve sonraki profile geç
-    setTimeout(() => {
-        overlay.classList.remove("show");
-        currentProfileIndex++;
-        showProfile(currentProfileIndex);
-    }, 3000);
-}
-
-function showMatchNotification() {
-    const notification = document.getElementById('match-notification');
-    notification.classList.remove('hidden');
-    notification.classList.add('visible');
-
-    // Hide the notification after 3 seconds
-    setTimeout(() => {
-        notification.classList.remove('visible');
-        notification.classList.add('hidden');
-    }, 3000);
-}
-
-// Like Profile Functionality
-async function likeProfile(profileId) {
-    try {
-        const response = await fetch("/api/like_profile", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ profile_id: profileId }),
-        });
-
-        if (!response.ok) throw new Error("Failed to like profile");
-        const result = await response.json();
-
-        if (result.message === "It's a match!") {
-            showMatchOverlay(); // MATCH! göster
-        } else {
-            alert("Profile liked!");
-            currentProfileIndex++;
-            showProfile(currentProfileIndex);
-        }
-    } catch (error) {
-        console.error("Error liking profile:", error);
-        alert("An error occurred. Please try again.");
-    }
+function showCross() {
+  const cross = document.createElement("div");
+  cross.className = "cross-animation";
+  cross.innerHTML = "<i class='fas fa-times' style='font-size: 80px; color: rgba(255,255,255,0.9);'></i>";
+  cross.style.position = "fixed";
+  cross.style.top = "50%";
+  cross.style.left = "50%";
+  cross.style.transform = "translate(-50%, -50%)";
+  cross.style.zIndex = "2000";
+  cross.style.opacity = "0";
+  cross.style.transition = "opacity 0.5s ease, transform 0.5s ease";
+  document.body.appendChild(cross);
+  setTimeout(() => {
+    cross.style.opacity = "1";
+    cross.style.transform = "translate(-50%, -50%) scale(1.2)";
+  }, 50);
+  setTimeout(() => { cross.remove(); }, 1000);
 }

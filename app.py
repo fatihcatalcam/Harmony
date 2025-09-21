@@ -1,35 +1,98 @@
+import os
+import random
+from datetime import datetime
+
+import requests
+from dotenv import load_dotenv
+from faker import Faker
+import importlib.util
 from flask import Flask, request, jsonify, redirect, render_template, session, url_for
 from flask_sqlalchemy import SQLAlchemy
-import requests
-import os
-from faker import Faker
-import random
 from flask_migrate import Migrate
-from datetime import datetime
 from flask_socketio import SocketIO, join_room, leave_room, emit
 
+# Güvenlik kütüphaneleri
+from flask_talisman import Talisman
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from flask_seasurf import SeaSurf
+
+# .env dosyasını yükle
+load_dotenv()
+
 app = Flask(__name__)
+
+# Gizli anahtarlar ve Spotify API bilgileri .env'den alınır.
+app.secret_key = os.getenv("SECRET_KEY", "default_secret_key")
+SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID", "your_spotify_client_id")
+SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET", "your_spotify_client_secret")
+SPOTIFY_REDIRECT_URI = os.getenv("SPOTIFY_REDIRECT_URI", "http://127.0.0.1:5000/callback")
+
+# Session güvenliği ayarları
+app.config.update(
+    SESSION_COOKIE_SECURE=True,       # Üretimde HTTPS gerektirir
+    SESSION_COOKIE_HTTPONLY=True,     # JavaScript erişimini engeller
+    SESSION_COOKIE_SAMESITE='Lax'
+)
+
+# Flask-Talisman ile HTTP güvenlik başlıkları ekleyelim (Content Security Policy örneği)
+csp = {
+    'default-src': [
+        "'self'",
+        "*"
+    ],
+    'style-src': [
+        "'self'",
+        "'unsafe-inline'",
+        "https://cdn.tailwindcss.com",   # Tailwind CSS kaynağı
+        "https://cdnjs.cloudflare.com",   # Font Awesome vb.
+        "https://cdn.jsdelivr.net",       # Diğer CDN
+        "https://fonts.googleapis.com"
+    ],
+    'script-src': [
+        "'self'",
+        "'unsafe-inline'",
+        "https://cdn.tailwindcss.com",
+        "https://cdnjs.cloudflare.com",
+        "https://cdn.jsdelivr.net",
+        "https://unpkg.com"
+    ]
+}
+
+Talisman(app, content_security_policy=csp)
+
+# Flask-Limiter ile rate limiting (geliştirme için in-memory storage kullanıyoruz)
+limiter = Limiter(key_func=get_remote_address)
+limiter.init_app(app)
+
+# Flask-SeaSurf ile CSRF koruması
+csrf = SeaSurf(app)
 
 # Instance path ayarları
 instance_path = os.path.abspath("instance")
 os.makedirs(instance_path, exist_ok=True)
 app.instance_path = instance_path
 
-# Configurations
+# SQLAlchemy yapılandırması
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(instance_path, 'app.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = "your_secret_key"
 
 # Veritabanı ve Migration
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-# Geliştirme aşamasında (migration kullanıyorsanız aşağıdaki satırı kaldırabilirsiniz)
+# Geliştirme aşamasında (migration kullanıyorsanız bu satırı kaldırabilirsiniz)
 with app.app_context():
     db.create_all()
+    
+# SocketIO async modunu, ortamda eventlet yoksa hataya düşmeyecek şekilde belirle
+def _detect_async_mode():
+    if importlib.util.find_spec("eventlet"):
+        return "eventlet"
+    return "threading"
 
-# SocketIO nesnesini eventlet asenkron moduyla başlatın
-socketio = SocketIO(app, async_mode="eventlet")
+
+socketio = SocketIO(app, async_mode=_detect_async_mode())
 
 # -------------------------------
 # Modeller
@@ -59,14 +122,8 @@ class Message(db.Model):
     receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-
     sender = db.relationship('User', foreign_keys=[sender_id])
     receiver = db.relationship('User', foreign_keys=[receiver_id])
-
-# Spotify API bilgileri (kendi bilgilerinizi girin)
-SPOTIFY_CLIENT_ID = "b2de7349f34f421287638527fd0612f1"
-SPOTIFY_CLIENT_SECRET = "b9ad5851cac44363ad7917cb988211ea"
-SPOTIFY_REDIRECT_URI = "http://127.0.0.1:5000/callback"
 
 # -------------------------------
 # WebSocket (SocketIO) Olayları
@@ -144,8 +201,8 @@ def profile():
                            top_tracks=user.top_tracks,
                            current_user_id=session.get("user_id"))
 
-
 @app.route("/login")
+@limiter.limit("100 per day")
 def login():
     scope = "user-top-read"
     auth_url = (
@@ -230,7 +287,6 @@ def callback():
                 for artist in top_artists_data
             ]
         else:
-            # Eğer API çağrısı başarısızsa, boş liste atayabilirsiniz
             user.top_artists = []
 
         # Top Tracks bilgisini çek
@@ -268,8 +324,6 @@ def callback():
     except Exception as e:
         return jsonify({"error": f"Error saving user data: {str(e)}"}), 500
 
-
-
 @app.route("/profile/<int:user_id>")
 def view_profile(user_id):
     user = User.query.get(user_id)
@@ -281,6 +335,7 @@ def view_profile(user_id):
                            top_tracks=user.top_tracks,
                            genres=user.genres)
 
+@csrf.exempt
 @app.route('/update_profile', methods=['POST'])
 def update_profile():
     user_id = session.get('user_id')
@@ -339,6 +394,7 @@ def find_profiles():
                                user=fake_user,
                                profile_picture_url=profile_picture_url)
 
+@csrf.exempt
 @app.route('/api/like_profile', methods=['POST'])
 def like_profile():
     current_user_id = session.get("user_id")
@@ -362,6 +418,8 @@ def like_profile():
         return jsonify({"message": "It's a match!"}), 200
 
     return jsonify({"message": "Profile liked!"}), 200
+
+
 
 def check_match(user_id, other_user_id):
     like_from_user = Like.query.filter_by(from_user_id=user_id, to_user_id=other_user_id).first()
@@ -403,7 +461,7 @@ def chat():
     if not current_user_id:
         return redirect(url_for("login"))
     
-    # Eşleşme mantığınız:
+    # Eşleşme mantığı
     likes_received = Like.query.filter_by(to_user_id=current_user_id).with_entities(Like.from_user_id).all()
     likes_given = Like.query.filter_by(from_user_id=current_user_id).with_entities(Like.to_user_id).all()
     liked_users = {like[0] for like in likes_given}
@@ -411,7 +469,7 @@ def chat():
     
     matches = User.query.filter(User.id.in_(matched_ids)).all()
     
-    # Diğer sohbet verilerinizi (mevcut mesajlar vb.) de hazırlayın. Bu örnekte sadece matches gönderiyoruz.
+    # Chat sayfası için matches gönderiliyor
     return render_template("chat.html", matches=matches, current_user_id=current_user_id)
 
 @app.route("/populate-database")

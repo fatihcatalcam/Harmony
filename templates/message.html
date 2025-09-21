@@ -69,7 +69,8 @@
     
     <!-- Mesaj Gönderme Formu (SocketIO ile gönderim yapılacak) -->
     <div class="bg-white p-4 flex items-center">
-      <form id="message-form" class="flex flex-grow" onsubmit="return false;">
+      <form id="message-form" class="flex flex-grow">
+
         <!-- Gizli alanlar: sender ve receiver ID -->
         <input type="hidden" id="sender-id" value="{{ session.get('user_id') }}">
         <input type="hidden" id="receiver-id" value="{{ user.id }}">
@@ -136,5 +137,6 @@
       console.error('Socket error:', data);
     });
   </script>
+  <script src="/static/js/app.js"></script>
 </body>
 </html>

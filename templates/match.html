@@ -1,291 +1,329 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Harmony - Find Profiles</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #121212, #1db954);
-            color: #fff;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        header {
-            background: #121212;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #1db954;
-            width: 100%;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1000;
-        }
-
-        header h1 {
-            margin: 0;
-            font-size: 2.5rem;
-            color: #1db954;
-            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transform: translateX(-50px); /* Hem profil fotoğrafını hem de logout butonunu sola kaydır */
-        }
-
-        header img {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 0 10px #1DB954, 0 0 20px #1DB954, 0 0 30px #1DB954; /* Neon parlama */
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            transform: translateX(-20px); /* 20 piksel sola kaydır */
-            }
-
-        header img:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 20px #1DB954, 0 0 40px #1DB954, 0 0 60px #1DB954; /* Hover sırasında daha güçlü parlama */
-            transform: scale(1.1) translateX(-20px); /* Hover sırasında da kaydırmayı koru */
-            }
-
-        .neon-profile {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 0 10px #1DB954, 0 0 20px #1DB954, 0 0 30px #1DB954;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            }
-
-        .neon-profile:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 20px #1DB954, 0 0 40px #1DB954, 0 0 60px #1DB954;
-            }
-            .btn.neon-logout {
-                padding: 10px 20px;
-                background: #1DB954;
-                color: #fff;
-                border-radius: 30px;
-                font-size: 1rem;
-                text-decoration: none;
-                font-weight: bold;
-                transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-                box-shadow: 0 0 10px #1DB954, 0 0 20px #1DB954, 0 0 30px #1DB954; /* Neon parlama */
-            }
-
-            .btn.neon-logout:hover {
-                background: #1aa34a;
-                transform: scale(1.1);
-                box-shadow: 0 0 20px #1DB954, 0 0 40px #1DB954, 0 0 60px #1DB954; /* Hover sırasında daha güçlü parlama */
-            }
-       
-        
-        .btn {
-            padding: 10px 20px;
-            background: #1db954;
-            color: #fff;
-            border-radius: 30px;
-            font-size: 1rem;
-            text-decoration: none;
-            font-weight: bold;
-            transition: background 0.3s ease, transform 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .btn:hover {
-            background: #1aa34a;
-            transform: scale(1.05);
-        }
-
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-            text-align: center;
-            padding: 80px 20px 20px;
-            margin-bottom: 80px;
-        }
-
-        .card {
-            background-color: #1DB954;
-            border-radius: 10px;
-            width: 300px;
-            padding: 20px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            color: #fff;
-            margin: 15px 0;
-        }
-
-        .card h2 {
-            margin: 10px 0;
-            font-size: 1.5em;
-        }
-
-        .card p {
-            font-size: 0.9em;
-            margin: 5px 0;
-        }
-
-        .top-artists, .top-tracks {
-            margin: 10px 0;
-        }
-
-        .top-artists h3, .top-tracks h3 {
-            font-size: 1.2em;
-            margin-bottom: 10px;
-        }
-
-        .artist, .song {
-            display: flex;
-            align-items: center;
-            margin: 5px 0;
-        }
-
-        .artist img, .song img {
-            width: 40px;
-            height: 40px;
-            border-radius: 5px;
-            margin-right: 10px;
-        }
-
-        .artist p, .song p {
-            margin: 0;
-            font-size: 0.9em;
-        }
-
-        .actions {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 15px;
-        }
-
-        .actions button {
-            background-color: #191414;
-            border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.3s ease;
-        }
-
-        .actions button i {
-            font-size: 1.5em;
-        }
-
-        .actions button.pass {
-            background-color: #e74c3c;
-        }
-
-        .actions button.like {
-            background-color: #1DB954;
-        }
-
-        .actions button:hover {
-            transform: scale(1.1);
-        }
-
-        footer {
-            text-align: center;
-            padding: 10px 0;
-            font-size: 0.9rem;
-            background: #121212;
-            border-top: 2px solid #1db954;
-            width: 100%;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            z-index: 1000;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Harmony - Find Profiles</title>
+  <!-- Font Awesome & Google Fonts -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+  <!-- Interact.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+  <style>
+    /* Genel Stil */
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #121212, #1db954);
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    header {
+      background: #121212;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #1db954;
+      width: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2.5rem;
+      color: #1db954;
+      text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateX(-50px);
+    }
+    header img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 10px #1db954, 0 0 20px #1db954, 0 0 30px #1db954;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      transform: translateX(-20px);
+    }
+    header img:hover {
+      transform: scale(1.1) translateX(-20px);
+      box-shadow: 0 0 20px #1db954, 0 0 40px #1db954, 0 0 60px #1db954;
+    }
+    .neon-profile {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 10px #1db954, 0 0 20px #1db954, 0 0 30px #1db954;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .neon-profile:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px #1db954, 0 0 40px #1db954, 0 0 60px #1db954;
+    }
+    .btn.neon-logout {
+      padding: 10px 20px;
+      background: #1db954;
+      color: #fff;
+      border-radius: 30px;
+      font-size: 1rem;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 0 10px #1db954, 0 0 20px #1db954, 0 0 30px #1db954;
+    }
+    .btn.neon-logout:hover {
+      background: #1aa34a;
+      transform: scale(1.1);
+      box-shadow: 0 0 20px #1db954, 0 0 40px #1db954, 0 0 60px #1db954;
+    }
+    .btn {
+      padding: 10px 20px;
+      background: #1db954;
+      color: #fff;
+      border-radius: 30px;
+      font-size: 1rem;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background 0.3s ease, transform 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+    .btn:hover {
+      background: #1aa34a;
+      transform: scale(1.05);
+    }
+    .container {
+      position: relative;
+      width: 320px;
+      height: 520px;
+      margin: 100px auto 0;
+      background: #121212;
+    }
+    .card {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #1db954;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      color: #fff;
+      padding: 15px;
+      box-sizing: border-box;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      touch-action: none;
+    }
+    .card h2 {
+      margin: 5px 0;
+      font-size: 1.3em;
+    }
+    .card p {
+      font-size: 0.7em;
+      margin: 5px 0;
+      word-wrap: break-word;
+    }
+    .top-artists, .top-tracks {
+      margin: 5px 0;
+    }
+    .top-artists h3, .top-tracks h3 {
+      font-size: 1.1em;
+      margin-bottom: 5px;
+    }
+    .artist, .song {
+      display: flex;
+      align-items: center;
+      margin: 5px 0;
+    }
+    .artist img, .song img {
+      width: 40px;
+      height: 40px;
+      border-radius: 5px;
+      margin-right: 10px;
+    }
+    .actions {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 10px;
+    }
+    .actions button {
+      background-color: #191414;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+    .actions button i {
+      font-size: 1.5em;
+    }
+    .actions button.pass {
+      background-color: #e74c3c;
+    }
+    .actions button.like {
+      background-color: #1db954;
+    }
+    .actions button:hover {
+      transform: scale(1.1);
+    }
+    footer {
+      text-align: center;
+      padding: 10px 0;
+      font-size: 0.9rem;
+      background: #121212;
+      border-top: 2px solid #1db954;
+      width: 100%;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      z-index: 1000;
+    }
+    /* Animasyonlar */
+    @keyframes growHeart {
+      0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0;
+      }
+    }
+    .heart-animation {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      font-size: 5rem;
+      color: white;
+      pointer-events: none;
+      z-index: 2000;
+      animation: growHeart 1s ease-in-out forwards;
+    }
+    @keyframes growMatch {
+      0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(1.5);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0;
+      }
+    }
+    .match-animation {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      font-size: 3em;
+      color: white;
+      font-weight: bold;
+      pointer-events: none;
+      z-index: 2000;
+      animation: growMatch 1s ease-in-out forwards;
+    }
+    @keyframes growCross {
+      0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0;
+      }
+    }
+    .cross-animation {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      font-size: 5rem;
+      color: red;
+      pointer-events: none;
+      z-index: 2000;
+      animation: growCross 1s ease-in-out forwards;
+    }
+  </style>
 </head>
 <body>
-    <header>
+  <header>
     <h1><a href="/index1" style="text-decoration: none; color: inherit;">Harmony</a></h1>
     <div class="header-right">
-        <a href="/profile">
-            <img id="profile-pic" class="neon-profile" src="{{ profile_picture_url or 'https://placehold.co/50x50' }}" alt="Profile Picture">
-        </a>
-        
-        <a href="/logout" id="logout-btn" class="btn neon-logout">Logout</a>
-
+      <a href="/profile">
+        <img id="profile-pic" class="neon-profile" src="{{ profile_picture_url or 'https://placehold.co/50x50' }}" alt="Profile Picture">
+      </a>
+      <a href="/logout" id="logout-btn" class="btn neon-logout">Logout</a>
     </div>
-</header>
-        <!-- Overlay for Match -->
-    <div id="match-overlay" class="match-overlay">
-        <div class="match-text">MATCH!</div>
-    </div>
-    <div id="match-notification" class="match-notification hidden">
-        <p>Match!</p>
-    </div>
-    
+  </header>
 
-    <div class="container">
-        <div id="profiles-container">
-            {% for profile in profiles %}
-            <div class="card">
-                <h2>{{ profile.display_name }}</h2>
-                <p><strong>Top Genres:</strong> {{ (profile.genres or [])[:5] | join(', ') }}</p>
-
-                    <!-- En Popüler Sanatçılar -->
-                    <div class="top-artists">
-                        <h3>Top Artists</h3>
-                        {% for artist in (profile.top_artists or [])[:3] %}
-                        <div class="artist">
-                            <img src="{{ artist.image or 'https://placehold.co/40x40' }}" alt="{{ artist.name }}">
-                            <p>{{ artist.name }}</p>
-                        </div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- En Popüler Şarkılar -->
-                    <div class="top-tracks">
-                        <h3>Top Tracks</h3>
-                        {% for track in (profile.top_tracks or [])[:3] %}
-                        <div class="song">
-                            <img src="{{ track.image or 'https://placehold.co/40x40' }}" alt="{{ track.name }}">
-                            <p>{{ track.name }}</p>
-                        </div>
-                        {% endfor %}
-                    </div>
-
-                <div class="actions">
-                    <button class="btn pass"><i class="fas fa-times"></i></button>
-                    <button class="btn like"><i class="fas fa-heart"></i></button>
-                </div>
-            </div>
+  <div class="container">
+    <div id="profiles-container">
+      {% for profile in profiles %}
+        <div class="card" data-id="{{ profile.id }}">
+          <h2>{{ profile.display_name }}</h2>
+          <p><strong>Top Genres:</strong> {{ (profile.genres or [])[:5] | join(', ') }}</p>
+          <div class="top-artists">
+            <h3>Top Artists</h3>
+            {% for artist in (profile.top_artists or [])[:3] %}
+              <div class="artist">
+                <img src="{{ artist.image or 'https://placehold.co/40x40' }}" alt="{{ artist.name }}">
+                <p>{{ artist.name }}</p>
+              </div>
             {% endfor %}
+          </div>
+          <div class="top-tracks">
+            <h3>Top Tracks</h3>
+            {% for track in (profile.top_tracks or [])[:3] %}
+              <div class="song">
+                <img src="{{ track.image or 'https://placehold.co/40x40' }}" alt="{{ track.name }}">
+                <p>{{ track.name }}</p>
+              </div>
+            {% endfor %}
+          </div>
+          <div class="actions">
+            <button class="btn pass"><i class="fas fa-times"></i></button>
+            <button class="btn like"><i class="fas fa-heart"></i></button>
+          </div>
         </div>
+      {% endfor %}
     </div>
+  </div>
 
-    <footer>
-        <p>© 2025 Harmony | Built with ❤️ for music lovers.</p>
-    </footer>
+  <footer>
+    <p>© 2025 Harmony | Built with ❤️ for music lovers.</p>
+  </footer>
 
-    <!-- In your HTML template -->
-<script src="{{ url_for('static', filename='js/app.js') }}"></script>
-<script src="{{ url_for('static', filename='js/find_match.js') }}"></script>
-
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/find_match.js') }}"></script>
 </body>
 </html>
