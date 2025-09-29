@@ -129,17 +129,26 @@ async function loadMessages(userId, userName) {
     chatMessages.innerHTML = '<p class="text-gray-500 text-center mt-4">Loading messages...</p>';
 
     try {
-        const response = await fetch(`/messages/${userId}`);
+        const response = await fetch(`/api/messages/${userId}`);
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
-        const data = await response.json();
+        const payload = await response.json();
+        const messages = Array.isArray(payload) ? payload : payload?.messages || [];
 
         // Loading metnini temizle
         chatMessages.innerHTML = "";
 
-        data.forEach((msg) => {
+        if (!messages.length) {
+            chatMessages.innerHTML = '<p class="text-gray-500 text-center mt-4">No messages yet.</p>';
+            return;
+        }
+
+        messages.forEach((msg) => {
+            const timestamp = msg.timestamp
+                ? new Date(msg.timestamp.replace(" ", "T"))
+                : new Date();
             const messageDiv = document.createElement("div");
             messageDiv.className = `flex w-full mt-2 space-x-3 max-w-xs ${
                 msg.sender_id === currentUser.id ? "ml-auto justify-end" : ""
@@ -154,7 +163,7 @@ async function loadMessages(userId, userName) {
                     } p-3 rounded-lg">
                         <p class="text-sm">${msg.content}</p>
                     </div>
-                    <span class="text-xs text-gray-500">${new Date(msg.timestamp).toLocaleTimeString()}</span>
+                    <span class="text-xs text-gray-500">${timestamp.toLocaleTimeString()}</span>
                 </div>`;
             chatMessages.appendChild(messageDiv);
         });

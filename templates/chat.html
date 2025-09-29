@@ -272,7 +272,7 @@
                 <ul class="match-list">
                     {% for match in matches %}
                         <li>
-                            <button class="match-item" data-user-id="{{ match.id }}" data-name="{{ match.display_name }}" data-image="{{ match.profile_image or 'https://placehold.co/80x80' }}">
+                            <button type="button" class="match-item" data-user-id="{{ match.id }}" data-name="{{ match.display_name }}" data-image="{{ match.profile_image or 'https://placehold.co/80x80' }}">
                                 <img src="{{ match.profile_image or 'https://placehold.co/80x80' }}" alt="{{ match.display_name }}">
                                 <span class="match-name">{{ match.display_name }}</span>
                             </button>
@@ -314,9 +314,11 @@
     </div>
 
     <script>
-        const socket = io();
+        const socket = typeof window.io === 'function'
+            ? window.io()
+            : { emit: () => {}, on: () => {} };
         const currentUserId = parseInt(document.getElementById('current-user-id').value, 10);
-        const matchButtons = document.querySelectorAll('.match-item');
+        const matchListEl = document.querySelector('.match-list');
         const chatNameEl = document.getElementById('chat-name');
         const chatStatusEl = document.getElementById('chat-status');
         const chatAvatarEl = document.getElementById('chat-avatar');
@@ -362,16 +364,25 @@
                 joinedRooms.add(activeChatUserId);
             }
 
-            matchButtons.forEach(btn => btn.classList.remove('active'));
-            const activeBtn = Array.from(matchButtons).find(btn => parseInt(btn.dataset.userId, 10) === activeChatUserId);
-            activeBtn?.classList.add('active');
+            document.querySelectorAll('.match-item').forEach(btn => {
+                const isActive = parseInt(btn.getAttribute('data-user-id'), 10) === activeChatUserId;
+                btn.classList.toggle('active', Boolean(isActive));
+            });
         }
 
-        matchButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const { userId, name, image } = button.dataset;
-                setActiveConversation(userId, name, image);
-            });
+        matchListEl?.addEventListener('click', (event) => {
+            const button = event.target.closest('.match-item');
+            if (!button) {
+                return;
+            }
+
+            event.preventDefault();
+
+            const userId = button.getAttribute('data-user-id');
+            const displayName = button.getAttribute('data-name');
+            const avatar = button.getAttribute('data-image');
+
+            setActiveConversation(userId, displayName, avatar);
         });
 
         chatFormEl.addEventListener('submit', (event) => {
