@@ -1,7 +1,16 @@
 import random
 
 from faker import Faker
-from flask import Blueprint, jsonify, redirect, render_template, request, session, url_for
+from flask import (
+    Blueprint,
+    abort,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 
 from ..extensions import csrf, db
 from ..models import Like, Message, User
@@ -392,6 +401,16 @@ def messages(user_id):
 
 @bp.route("/messages", methods=["POST"])
 def send_message():
+    session_user_id = session.get("user_id")
+
+    def handle_auth_error(status_code, message):
+        if request.is_json:
+            return jsonify({"error": message}), status_code
+        abort(status_code)
+
+    if session_user_id is None:
+        return handle_auth_error(401, "User not logged in")
+
     if request.is_json:
         data = request.get_json()
         sender_id = data.get("sender_id")
@@ -408,10 +427,16 @@ def send_message():
     try:
         sender_id = int(sender_id)
         receiver_id = int(receiver_id)
-    except ValueError:
+        session_sender_id = int(session_user_id)
+    except (TypeError, ValueError):
         return jsonify({"error": "Invalid sender or receiver ID"}), 400
 
-    message = Message(sender_id=sender_id, receiver_id=receiver_id, content=content)
+    if sender_id != session_sender_id:
+        return handle_auth_error(403, "Forbidden")
+
+    message = Message(
+        sender_id=session_sender_id, receiver_id=receiver_id, content=content
+    )
     db.session.add(message)
     db.session.commit()
 
