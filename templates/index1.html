@@ -372,8 +372,8 @@
 <body>
     <header>
         <div class="logo">
-            <span>♪</span>
-            Harmony
+        <div class="logo"><span>♬</span>Harmony</div>
+        <nav aria-label="Primary navigation">
         </div>
         <div class="header-right">
             <a href="/find-profiles" class="btn secondary">Discover</a>
@@ -385,12 +385,12 @@
     <main>
         <section class="dashboard-hero">
             <div class="hero-card">
-                <h1>Welcome back, {{ current_user.display_name or current_user.username }}!</h1>
+                <h1>Welcome back, {{ user.display_name or user.username }}!</h1>
                 <p>Keep the rhythm going by discovering new connections, revisiting your favourite matches, and starting fresh conversations.</p>
                 <div class="quick-actions">
                     <a href="/check-matches" class="btn">View Matches</a>
                     <a href="/find-profiles" class="btn secondary">Find New Profiles</a>
-                    <a href="/chat" class="btn secondary">Open Messages</a>
+                    
                 </div>
             </div>
             <div class="stats-card">
