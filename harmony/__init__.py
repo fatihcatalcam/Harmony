@@ -17,7 +17,14 @@ def _detect_async_mode():
 def create_app():
     load_dotenv()
 
-    app = Flask(__name__)
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+    app = Flask(
+        __name__,
+        template_folder=os.path.join(base_dir, "templates"),
+        static_folder=os.path.join(base_dir, "static"),
+        static_url_path="/static",
+    )
 
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "default_secret_key")
     app.config["SPOTIFY_CLIENT_ID"] = os.getenv("SPOTIFY_CLIENT_ID", "your_spotify_client_id")
@@ -32,7 +39,7 @@ def create_app():
         SESSION_COOKIE_SAMESITE="Lax",
     )
 
-    instance_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "instance"))
+    instance_path = os.path.join(base_dir, "instance")
     os.makedirs(instance_path, exist_ok=True)
     app.instance_path = instance_path
 
