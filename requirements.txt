@@ -1,0 +1,9 @@
+Flask
+Flask-SQLAlchemy
+Flask-Migrate
+Flask-SocketIO
+Flask-Limiter
+Flask-SeaSurf
+Flask-Talisman
+python-dotenv
+requests

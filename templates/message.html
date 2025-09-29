@@ -25,7 +25,7 @@
   <div class="flex-grow overflow-auto">
     {% if matches and matches|length > 0 %}
       {% for match in matches %}
-        <a href="{{ url_for('messages', user_id=match.id) }}" class="block p-4 flex items-center border-b border-gray-200 hover:bg-gray-100 {% if match.id == user.id %}bg-gray-100{% endif %}">
+        <a href="{{ url_for('main.messages', user_id=match.id) }}" class="block p-4 flex items-center border-b border-gray-200 hover:bg-gray-100 {% if match.id == user.id %}bg-gray-100{% endif %}">
           <img alt="{{ match.display_name }}" class="rounded-full h-12 w-12" src="{{ match.profile_image or 'https://placehold.co/50x50' }}"/>
           <div class="ml-4">
             <p class="text-sm font-medium">{{ match.display_name }}</p>

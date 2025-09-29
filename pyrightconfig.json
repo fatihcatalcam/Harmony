@@ -1,0 +1,7 @@
+{
+  "include": ["harmony", "app.py"],
+  "venvPath": ".",
+  "venv": "venv",
+  "extraPaths": ["."],
+  "reportMissingImports": "warning"
+}
