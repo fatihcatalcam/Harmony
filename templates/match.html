@@ -169,70 +169,23 @@
 
     main {
       flex: 1;
-      padding: 40px 7vw 120px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 48px;
-      align-items: start;
-    }
-
-    .match-intro {
+      padding: 60px 7vw 120px;
       display: flex;
       flex-direction: column;
-      gap: 24px;
-    }
-
-    .match-intro h1 {
-      font-size: clamp(2rem, 3.5vw, 3rem);
-      line-height: 1.1;
-    }
-
-    .match-intro p {
-      color: var(--muted);
-      line-height: 1.7;
-      max-width: 480px;
-    }
-
-    .match-stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 16px;
-    }
-
-    .stat-card {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 18px;
-      border-radius: 18px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .stat-card span {
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
-
-    .stat-card strong {
-      font-size: 1.3rem;
-    }
-
-    .match-controls {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
     }
 
     .cards-wrapper {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 24px;
+      gap: 20px;
     }
 
-    .cards-wrapper h2 {
-      font-size: 1.4rem;
+    .cards-wrapper h1 {
+      font-size: clamp(1.8rem, 4vw, 2.4rem);
       font-weight: 600;
     }
 
@@ -245,8 +198,8 @@
 
     .container {
       position: relative;
-      width: clamp(280px, 32vw, 360px);
-      height: 520px;
+      width: clamp(240px, 28vw, 320px);
+      height: 470px;
       perspective: 1200px;
     }
 
@@ -256,8 +209,8 @@
       background: var(--card);
       border: 1px solid var(--card-border);
       border-radius: 24px;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
-      padding: 28px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+      padding: 24px;
       display: flex;
       flex-direction: column;
       gap: 18px;
@@ -308,8 +261,8 @@
 
     .artist img,
     .song img {
-      width: 46px;
-      height: 46px;
+      width: 42px;
+      height: 42px;
       border-radius: 12px;
       object-fit: cover;
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
@@ -345,8 +298,8 @@
     }
 
     .actions button {
-      width: 66px;
-      height: 66px;
+      width: 58px;
+      height: 58px;
       border-radius: 50%;
       border: none;
       display: inline-flex;
@@ -486,12 +439,8 @@
 
     @media (max-width: 960px) {
       main {
-        padding: 32px 6vw 100px;
-        gap: 36px;
-      }
-
-      .cards-wrapper {
-        order: -1;
+        padding: 40px 6vw 100px;
+        gap: 28px;
       }
 
       header {
@@ -512,32 +461,9 @@
   </header>
 
   <main>
-    <section class="match-intro">
-      <h1>Discover your next musical connection</h1>
-      <p>Swipe through curated profiles tailored to your taste. Harmony connects you with people who vibe with the same artists, tracks and genres you love.</p>
-      <div class="match-stats">
-        <div class="stat-card">
-          <span>Daily Matches</span>
-          <strong>1.2k</strong>
-        </div>
-        <div class="stat-card">
-          <span>Shared Playlists</span>
-          <strong>540+</strong>
-        </div>
-        <div class="stat-card">
-          <span>Concert Meetups</span>
-          <strong>320</strong>
-        </div>
-      </div>
-      <div class="match-controls">
-        <a href="/check-matches" class="btn secondary"><i class="fas fa-star"></i> View Matches</a>
-        <a href="/profile" class="btn secondary"><i class="fas fa-user"></i> Update Profile</a>
-      </div>
-    </section>
-
     <section class="cards-wrapper">
-      <h2>Swipe &amp; Match</h2>
-      <p>Drag cards to the right to like or to the left to pass. Tap the buttons for quick actions.</p>
+      <h1>Swipe &amp; Match</h1>
+      <p>Drag cards right to like or left to pass. Use the buttons for quick actions.</p>
       <div class="container">
         <div id="profiles-container">
           {% if no_profiles %}
