@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"></link>
     
 </head>
-<body class="min-h-screen bg-slate-950 text-white relative overflow-hidden">
+<body class="min-h-screen bg-slate-950 text-white relative overflow-x-hidden">
     <div class="absolute inset-0 -z-10">
         <div class="absolute -top-48 -left-32 w-96 h-96 bg-emerald-500 rounded-full blur-3xl opacity-30 animate-pulse"></div>
         <div class="absolute top-1/2 right-0 w-[28rem] h-[28rem] bg-lime-500 rounded-full blur-3xl opacity-20 animate-pulse"></div>
@@ -78,6 +78,43 @@
                             Edit Profile
                         </button>
                         {% endif %}
+
+                        <div class="mt-10 w-full space-y-6 text-left">
+                            <div class="rounded-2xl border border-white/5 bg-white/5 p-5 shadow-xl shadow-black/30">
+                                <div class="flex items-center justify-between">
+                                    <h2 class="text-lg font-semibold text-emerald-100">Top Artists</h2>
+                                    <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-200">{{ (user.top_artists or []) | length }}</span>
+                                </div>
+                                <div class="mt-4 space-y-3">
+                                    {% for artist in (user.top_artists or [])[:4] %}
+                                    <div class="flex items-center gap-3 rounded-xl border border-white/5 bg-slate-900/60 p-3 transition hover:border-emerald-400/50 hover:bg-emerald-500/10">
+                                        <img src="{{ artist.image }}" alt="Image of artist {{ artist.name }}" class="h-12 w-12 rounded-xl object-cover shadow-lg">
+                                        <div>
+                                            <a href="{{ artist.spotify_url }}" target="_blank" class="font-semibold text-emerald-100 hover:text-emerald-300">{{ artist.name }}</a>
+                                            <p class="text-xs text-emerald-200/70 mt-1">{{ ", ".join(artist.genres) }}</p>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <p class="text-sm text-emerald-200/60">We don't have favorite artists yet. Follow more creators to unlock this list.</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="rounded-2xl border border-white/5 bg-white/5 p-5 shadow-xl shadow-black/30">
+                                <div class="flex items-center justify-between">
+                                    <h2 class="text-lg font-semibold text-emerald-100">Top Genres</h2>
+                                    <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-200">{{ (user.genres or []) | length }}</span>
+                                </div>
+                                <p class="mt-2 text-xs text-emerald-100/80">A palette of sounds shaping {{ user.display_name }}'s playlists.</p>
+                                <ul class="mt-4 flex flex-wrap gap-2">
+                                    {% for genre in (user.genres or []) %}
+                                    <li class="rounded-full bg-gradient-to-r from-emerald-500/30 to-cyan-500/30 px-3 py-1 text-xs font-medium text-emerald-50 shadow-lg shadow-emerald-900/30">{{ genre }}</li>
+                                    {% else %}
+                                    <li class="text-sm text-emerald-200/60">Genres will appear once you explore more music.</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Edit Form -->
@@ -133,42 +170,6 @@
                     </div>
                 </div>
 
-                <div class="grid lg:grid-cols-2 gap-6">
-                    <div class="rounded-3xl border border-white/5 bg-slate-900/60 p-6 shadow-xl shadow-black/30">
-                        <div class="flex items-center justify-between">
-                            <h2 class="text-xl font-semibold text-emerald-100">Top Artists</h2>
-                            <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-200">{{ (user.top_artists or []) | length }}</span>
-                        </div>
-                        <div class="mt-5 space-y-4">
-                            {% for artist in (user.top_artists or []) %}
-                            <div class="flex items-center gap-4 rounded-2xl border border-white/5 bg-white/5 p-3 transition hover:border-emerald-400/50 hover:bg-emerald-500/10">
-                                <img src="{{ artist.image }}" alt="Image of artist {{ artist.name }}" class="h-14 w-14 rounded-2xl object-cover shadow-lg">
-                                <div>
-                                    <a href="{{ artist.spotify_url }}" target="_blank" class="font-semibold text-emerald-100 hover:text-emerald-300">{{ artist.name }}</a>
-                                    <p class="text-xs text-emerald-200/70 mt-1">{{ ", ".join(artist.genres) }}</p>
-                                </div>
-                            </div>
-                            {% else %}
-                            <p class="text-sm text-emerald-200/60">We don't have favorite artists yet. Follow more creators to unlock this list.</p>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                    <div class="rounded-3xl border border-white/5 bg-slate-900/60 p-6 shadow-xl shadow-black/30">
-                        <div class="flex items-center justify-between">
-                            <h2 class="text-xl font-semibold text-emerald-100">Top Genres</h2>
-                            <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-200">{{ (user.genres or []) | length }}</span>
-                        </div>
-                        <p class="mt-2 text-sm text-emerald-100/80">A palette of sounds shaping {{ user.display_name }}'s playlists.</p>
-                        <ul class="mt-5 flex flex-wrap gap-2">
-                            {% for genre in (user.genres or []) %}
-                            <li class="rounded-full bg-gradient-to-r from-emerald-500/30 to-cyan-500/30 px-4 py-2 text-sm font-medium text-emerald-50 shadow-lg shadow-emerald-900/30">{{ genre }}</li>
-                            {% else %}
-                            <li class="text-sm text-emerald-200/60">Genres will appear once you explore more music.</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
             </section>
         </div>
     </div>
