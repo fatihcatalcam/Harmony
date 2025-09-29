@@ -4,224 +4,452 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Harmony - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Arial', sans-serif;
+        :root {
+            --primary: #1db954;
+            --primary-dark: #169943;
+            --background: #0b1117;
+            --background-soft: rgba(11, 17, 23, 0.7);
+            --card: rgba(18, 18, 18, 0.85);
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #f5f5f5;
+            --muted: rgba(245, 245, 245, 0.75);
+            --accent: #4dd0e1;
+            --gradient: linear-gradient(135deg, rgba(29, 185, 84, 0.9), rgba(18, 18, 18, 0.95));
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #121212, #1db954);
-            color: #fff;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            width: 420px;
+            height: 420px;
+            border-radius: 50%;
+            filter: blur(140px);
+            z-index: -2;
+            opacity: 0.55;
+        }
+
+        body::before {
+            background: rgba(29, 185, 84, 0.5);
+            top: -160px;
+            left: -120px;
+        }
+
+        body::after {
+            background: rgba(77, 208, 225, 0.4);
+            bottom: -180px;
+            right: -140px;
         }
 
         header {
-            background: #121212;
-            padding: 15px 20px;
+            width: 100%;
+            padding: 24px 7vw;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid #1db954;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: linear-gradient(180deg, rgba(11, 17, 23, 0.92) 0%, rgba(11, 17, 23, 0) 100%);
+            backdrop-filter: blur(18px);
         }
 
-        header h1 {
-            margin: 0;
-            font-size: 2.5rem;
-            color: #1db954;
-            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo span {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gradient);
+            box-shadow: 0 10px 30px rgba(29, 185, 84, 0.35);
+            font-size: 1.2rem;
         }
 
         .header-right {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 18px;
         }
 
-        header img {
+        .profile-thumb {
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 0 10px #1DB954, 0 0 20px #1DB954, 0 0 30px #1DB954;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            object-fit: cover;
+            box-shadow: 0 0 0 4px rgba(29, 185, 84, 0.2);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
         }
 
-        header img:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 20px #1DB954, 0 0 40px #1DB954, 0 0 60px #1DB954;
+        .profile-thumb:hover {
+            transform: scale(1.06);
+            box-shadow: 0 0 0 6px rgba(29, 185, 84, 0.35);
         }
 
-        .btn.neon-logout {
-            padding: 10px 20px;
-            background: #1DB954;
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 22px;
+            background: var(--primary);
             color: #fff;
-            border-radius: 30px;
-            font-size: 1rem;
+            font-size: 0.95rem;
+            border-radius: 999px;
             text-decoration: none;
-            font-weight: bold;
-            transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 0 10px #1DB954, 0 0 20px #1DB954, 0 0 30px #1DB954;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+            box-shadow: 0 12px 28px rgba(29, 185, 84, 0.25);
+            position: relative;
+            overflow: hidden;
         }
 
-        .btn.neon-logout:hover {
-            background: #1aa34a;
-            transform: scale(1.1);
-            box-shadow: 0 0 20px #1DB954, 0 0 40px #1DB954, 0 0 60px #1DB954;
+        .btn::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+            transform: translateX(-120%);
+            transition: transform 0.6s ease;
         }
 
-        .container {
+        .btn:hover::after {
+            transform: translateX(120%);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px) scale(1.02);
+            background: var(--primary-dark);
+        }
+
+        .btn.secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text);
+            box-shadow: none;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        main {
             flex: 1;
-            text-align: center;
-            padding: 20px;
+            padding: 40px 7vw 120px;
         }
 
-        .container h2 {
+        .dashboard-hero {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 48px;
+            margin-bottom: 60px;
+            align-items: center;
+        }
+
+        .hero-card {
+            background: var(--card);
+            border-radius: 26px;
+            padding: 40px;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-card::before {
+            content: "";
+            position: absolute;
+            inset: -30% 40% auto -30%;
+            height: 140%;
+            background: radial-gradient(circle at top, rgba(77, 208, 225, 0.35), transparent 65%);
+            opacity: 0.6;
+        }
+
+        .hero-card h1 {
+            font-size: clamp(2rem, 3.5vw, 3rem);
+            line-height: 1.1;
             margin-bottom: 20px;
-            font-size: 2rem;
         }
 
-        .matches-container {
+        .hero-card p {
+            color: var(--muted);
+            font-size: 1.05rem;
+            line-height: 1.7;
+            margin-bottom: 30px;
+        }
+
+        .quick-actions {
             display: flex;
             flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 60px;
+            gap: 16px;
+        }
+
+        .stats-card {
+            background: var(--background-soft);
+            border-radius: 24px;
+            padding: 32px;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(18px);
+            display: grid;
+            gap: 28px;
+        }
+
+        .stats-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 22px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stats-item span {
+            font-size: 0.95rem;
+            color: var(--muted);
+        }
+
+        .stats-item strong {
+            font-size: 1.4rem;
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 28px;
+        }
+
+        .section-title h2 {
+            font-size: clamp(1.5rem, 2.8vw, 2rem);
+            font-weight: 600;
+        }
+
+        .matches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 24px;
         }
 
         .match-card {
-            background: #191414;
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            width: 140px;
+            background: var(--card);
+            border-radius: 22px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+        }
+
+        .match-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top, rgba(77, 208, 225, 0.18), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.35s ease;
         }
 
         .match-card:hover {
-            transform: scale(1.1);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.5);
+            transform: translateY(-8px);
+            box-shadow: 0 24px 55px rgba(0, 0, 0, 0.45);
+            border-color: rgba(29, 185, 84, 0.45);
+        }
+
+        .match-card:hover::before {
+            opacity: 1;
         }
 
         .match-card img {
-            width: 60px;
-            height: 60px;
+            width: 72px;
+            height: 72px;
             border-radius: 50%;
-            margin-bottom: 10px;
-            box-shadow: 0 0 8px #1db954;
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            object-fit: cover;
+            box-shadow: 0 0 0 6px rgba(29, 185, 84, 0.18);
+            margin-bottom: 6px;
         }
 
-        .match-card p {
-            color: #fff;
+        .match-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .match-meta {
+            color: var(--muted);
             font-size: 0.9rem;
-            margin: 5px 0;
         }
 
         .card-buttons {
             display: flex;
-            flex-direction: column;
-            gap: 10px; /* Butonlar arası boşluk */
-            margin-top: 10px;
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
         .card-buttons .btn {
-            background: #1db954;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: background 0.3s ease;
+            flex: 1 1 120px;
+            padding: 10px 16px;
+            font-size: 0.9rem;
+        }
+
+        .empty-state {
+            background: var(--background-soft);
+            border-radius: 24px;
+            padding: 48px;
             text-align: center;
-            text-decoration: none;
-        }
-
-        .card-buttons .btn:hover {
-            background: #16a085;
-        }
-
-        .find-profiles-btn,
-        .check-matches-btn {
-            margin: 10px auto; /* Üst üste düzen */
-            display: block;
-            width: 200px; /* Sabit genişlik */
-            padding: 10px 20px; /* Buton yazısı içindeki boşluk */
-            text-align: center; /* Yazıyı ortalar */
-            font-size: 1rem;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
         }
 
         footer {
+            padding: 24px 7vw 32px;
             text-align: center;
-            padding: 10px 0;
-            font-size: 0.9rem;
-            background: #121212;
-            border-top: 2px solid #1db954;
-            position: fixed;
-            width: 100%;
-            bottom: 0;
-            left: 0;
+            color: var(--muted);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            background: linear-gradient(0deg, rgba(11, 17, 23, 0.92) 0%, rgba(11, 17, 23, 0) 100%);
         }
 
-        .btn {
-            padding: 10px 20px;
-            background: #1db954;
-            color: #fff;
-            border-radius: 30px;
-            font-size: 1rem;
-            text-decoration: none;
-            font-weight: bold;
-            transition: background 0.3s ease, transform 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
+        @media (max-width: 720px) {
+            header {
+                padding: 18px 6vw;
+            }
 
-        .btn:hover {
-            background: #1aa34a;
-            transform: scale(1.05);
+            .header-right {
+                gap: 12px;
+            }
+
+            .btn {
+                padding: 10px 18px;
+            }
+
+            main {
+                padding: 32px 6vw 100px;
+            }
+
+            .hero-card,
+            .stats-card {
+                padding: 28px;
+            }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Harmony</h1>
+        <div class="logo">
+            <span>♪</span>
+            Harmony
+        </div>
         <div class="header-right">
-            <img id="profile-pic" src="{{ profile_picture_url }}" alt="Profile">
-            <a href="/logout" class="btn neon-logout">Logout</a>
+            <a href="/find-profiles" class="btn secondary">Discover</a>
+            <img id="profile-pic" class="profile-thumb" src="{{ profile_picture_url }}" alt="Profile">
+            <a href="/logout" class="btn">Logout</a>
         </div>
     </header>
 
-    <div class="container">
-        <h2>Welcome Back to Harmony!</h2>
-        {% if matches %}
-            <h3>Your Matches:</h3>
-            <div class="matches-container">
-                {% for match in matches %}
-                <div class="match-card">
-                    <img src="{{ match.profile_image or 'https://placehold.co/150x150' }}" alt="{{ match.display_name }}">
-                    <p>{{ match.display_name }}</p>
-                    <div class="card-buttons">
-                        <a href="/profile/{{ match.id }}" class="btn">Check Profile</a>
-                        <a href="#" class="btn message-btn" data-user-id="{{ match.id }}">Send Message</a>
+    <main>
+        <section class="dashboard-hero">
+            <div class="hero-card">
+                <h1>Welcome back, {{ current_user.display_name or current_user.username }}!</h1>
+                <p>Keep the rhythm going by discovering new connections, revisiting your favourite matches, and starting fresh conversations.</p>
+                <div class="quick-actions">
+                    <a href="/check-matches" class="btn">View Matches</a>
+                    <a href="/find-profiles" class="btn secondary">Find New Profiles</a>
+                    <a href="/chat" class="btn secondary">Open Messages</a>
+                </div>
+            </div>
+            <div class="stats-card">
+                <div class="stats-item">
+                    <span>Total Matches</span>
+                    <strong>{{ matches|length }}</strong>
+                </div>
+                <div class="stats-item">
+                    <span>New Conversations</span>
+                    <strong>{{ new_conversations or 0 }}</strong>
+                </div>
+                <div class="stats-item">
+                    <span>Discoveries this week</span>
+                    <strong>{{ discoveries or 0 }}</strong>
+                </div>
+            </div>
+        </section>
 
+        <section class="matches-section">
+            <div class="section-title">
+                <h2>Your Harmony Matches</h2>
+                <a href="/find-profiles" class="btn secondary">Find more</a>
+            </div>
 
+            {% if matches %}
+                <div class="matches-grid">
+                    {% for match in matches %}
+                        <article class="match-card">
+                            <img src="{{ match.profile_image or 'https://placehold.co/150x150' }}" alt="{{ match.display_name }}">
+                            <div class="match-name">{{ match.display_name }}</div>
+                            {% if match.top_genre %}
+                                <div class="match-meta">Top genre: {{ match.top_genre }}</div>
+                            {% endif %}
+                            <div class="card-buttons">
+                                <a href="/profile/{{ match.id }}" class="btn secondary">View Profile</a>
+                                <a href="#" class="btn message-btn" data-user-id="{{ match.id }}">Message</a>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No matches yet</h3>
+                    <p>Ready to connect with more music lovers? Explore new profiles and start building your Harmony today.</p>
+                    <div class="quick-actions" style="justify-content: center; margin-top: 24px;">
+                        <a href="/find-profiles" class="btn">Find Profiles</a>
+                        <a href="/check-matches" class="btn secondary">Check Likes</a>
                     </div>
                 </div>
-                
-                {% endfor %}
-            </div>
-        {% else %}
-            <p>No matches found. Try liking more profiles!</p>
-        {% endif %}
-        <a href="/check-matches" class="btn check-matches-btn">Check Your Matches</a>
+            {% endif %}
+        </section>
+    </main>
 
-        <a href="/find-profiles" class="btn find-profiles-btn">Find Your Match</a>
-
-    </div>
     <div id="chat-container" style="display: none;"></div>
+
     <footer>
-        <p>© 2025 Harmony | Built with ❤️ for music lovers.</p>
+        <p>© 2025 Harmony · Crafted with ❤️ for music lovers.</p>
     </footer>
+
     <script src="/static/js/app.js"></script>
 </body>
 </html>
