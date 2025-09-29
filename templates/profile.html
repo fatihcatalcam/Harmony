@@ -8,106 +8,189 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"></link>
     
 </head>
-<body class="bg-gradient-to-br from-green-500 to-black text-white min-h-screen">
-    <div class="max-w-4xl mx-auto p-6 bg-gray-900 bg-opacity-90 rounded-lg shadow-lg mt-10">
-        <!-- Geri Dön Butonu -->
-        <a href="/index1" class="inline-block mb-6 px-6 py-2 bg-green-500 text-white text-lg font-bold rounded-full shadow-lg hover:bg-green-600 transform hover:scale-105 transition duration-300">
-            <i class="fas fa-arrow-left mr-2"></i>Go Back
-        </a>
+<body class="min-h-screen bg-slate-950 text-white relative overflow-hidden">
+    <div class="absolute inset-0 -z-10">
+        <div class="absolute -top-48 -left-32 w-96 h-96 bg-emerald-500 rounded-full blur-3xl opacity-30 animate-pulse"></div>
+        <div class="absolute top-1/2 right-0 w-[28rem] h-[28rem] bg-lime-500 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+        <div class="absolute -bottom-32 left-1/2 w-72 h-72 bg-cyan-500 rounded-full blur-3xl opacity-25"></div>
+    </div>
 
-        <!-- Kullanıcı Bilgileri -->
-        <div class="text-center mb-10">
-            <img src="{{ user.profile_image }}" alt="Profile image of {{ user.display_name }}" class="w-36 h-36 rounded-full mx-auto mb-4 shadow-lg">
-            <h1 class="text-3xl font-bold">{{ user.display_name }}</h1>
-            <p class="text-lg mt-2">{{ user.bio or "Bio: No bio available." }}</p>
-            <p class="text-lg mt-1">Age: {{ user.age or "N/A" }}</p>
-            <p class="text-lg mt-1">Location: {{ user.location or "N/A" }}</p>
-            {% if user.id == session.get('user_id') %}
-                <button onclick="toggleEditForm()" class="mt-4 px-6 py-2 bg-blue-500 text-white text-lg font-bold rounded-full shadow-lg hover:bg-blue-600 transform hover:scale-105 transition duration-300">
-                    <i class="fas fa-edit mr-2"></i>Edit Profile
-                </button>
-                {% endif %}
-        </div>
-
-        <!-- Edit Form -->
-        <div id="edit-form" class="hidden mb-10">
-            <form id="profile-form" action="/update_profile" method="POST" class="bg-gray-800 p-6 rounded-lg shadow-lg">
-                <div class="mb-4">
-                    <label for="bio" class="block text-sm font-bold mb-2">Bio:</label>
-                    <textarea id="bio" name="bio" class="w-full p-2 rounded-lg bg-gray-700 text-white" rows="3">{{ user.bio }}</textarea>
-                </div>
-                <div class="mb-4">
-                    <label for="age" class="block text-sm font-bold mb-2">Age:</label>
-                    <input type="number" id="age" name="age" class="w-full p-2 rounded-lg bg-gray-700 text-white" value="{{ user.age }}">
-                </div>
-                <div class="mb-4">
-                    <label for="location" class="block text-sm font-bold mb-2">Location:</label>
-                    <input type="text" id="location" name="location" class="w-full p-2 rounded-lg bg-gray-700 text-white" value="{{ user.location }}">
-                </div>
-                <button type="submit" class="w-full px-6 py-2 bg-green-500 text-white text-lg font-bold rounded-full shadow-lg hover:bg-green-600 transform hover:scale-105 transition duration-300">
-                    Save Changes               
-                 </button>
-            </form>
-        </div>
-        <div class="mb-10">
-            <h2 class="text-2xl font-bold text-green-500 mb-4">Top Tracks</h2>
-            {% for track in (user.top_tracks or []) %}
-            <div class="flex items-center mb-4">
-                <img src="{{ track.image }}" alt="Album cover of track {{ track.name }}" class="w-20 h-20 rounded-lg mr-4">
-                <div>
-                    <a href="{{ track.spotify_url }}" target="_blank" class="text-green-500 text-lg font-bold hover:underline">{{ track.name }}</a>
-                    <p class="text-sm">Album: {{ track.album }} | Artists: {{ ", ".join(track.artists) }}</p>
-                </div>
+    <div class="max-w-6xl mx-auto px-6 py-10">
+        <div class="flex items-center justify-between mb-6">
+            <a href="/index1" class="inline-flex items-center gap-2 px-5 py-2 text-sm font-semibold tracking-wide text-emerald-100 bg-emerald-600/70 rounded-full shadow-xl shadow-emerald-900/40 backdrop-blur-sm transition hover:bg-emerald-500 hover:shadow-emerald-900/60">
+                <i class="fas fa-arrow-left"></i>
+                <span>Back to Discover</span>
+            </a>
+            <div class="hidden sm:flex items-center gap-3 text-emerald-200 text-sm">
+                <i class="fas fa-music text-lg"></i>
+                <span>Harmony keeps your vibe alive</span>
             </div>
-            {% endfor %}
         </div>
-        <!-- En Popüler Sanatçılar -->
-        <div class="mb-10">
-            <h2 class="text-2xl font-bold text-green-500 mb-4">Top Artists</h2>
-            {% for artist in (user.top_artists or []) %}
-            <div class="flex items-center mb-4">
-                <img src="{{ artist.image }}" alt="Image of artist {{ artist.name }}" class="w-20 h-20 rounded-lg mr-4">
-                <div>
-                    <a href="{{ artist.spotify_url }}" target="_blank" class="text-green-500 text-lg font-bold hover:underline">{{ artist.name }}</a>
-                    <p class="text-sm">{{ ", ".join(artist.genres) }}</p>
+
+        <div class="grid lg:grid-cols-[1.1fr_1.3fr] gap-8">
+            <!-- Profile Card -->
+            <section class="relative overflow-hidden rounded-3xl border border-white/5 bg-white/5 backdrop-blur-xl shadow-2xl shadow-emerald-900/30">
+                <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-transparent to-slate-900/70"></div>
+                <div class="relative p-8">
+                    <div class="flex flex-col items-center text-center">
+                        <div class="relative">
+                            <span class="absolute inset-0 rounded-full bg-emerald-500/40 blur-xl"></span>
+                            <img src="{{ user.profile_image }}" alt="Profile image of {{ user.display_name }}" class="relative w-36 h-36 rounded-full object-cover ring-4 ring-emerald-400/60 shadow-2xl">
+                        </div>
+                        <h1 class="mt-6 text-3xl font-extrabold tracking-tight text-white">{{ user.display_name }}</h1>
+                        <p class="mt-3 text-base text-emerald-100/90 leading-relaxed">{{ user.bio or "Bio: No bio available." }}</p>
+
+                        <div class="mt-6 w-full grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-emerald-100/80">
+                            <div class="flex items-center gap-3 rounded-2xl bg-white/5 px-4 py-3">
+                                <i class="fas fa-birthday-cake text-emerald-300"></i>
+                                <div>
+                                    <p class="font-semibold uppercase tracking-widest text-xs text-emerald-300">Age</p>
+                                    <p class="text-lg">{{ user.age or "N/A" }}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3 rounded-2xl bg-white/5 px-4 py-3">
+                                <i class="fas fa-map-marker-alt text-emerald-300"></i>
+                                <div>
+                                    <p class="font-semibold uppercase tracking-widest text-xs text-emerald-300">Location</p>
+                                    <p class="text-lg">{{ user.location or "N/A" }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 flex flex-wrap justify-center gap-3 text-xs font-semibold tracking-wide">
+                            <span class="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-4 py-2 text-emerald-100">
+                                <i class="fas fa-headphones text-emerald-300"></i>
+                                {{ (user.top_tracks or []) | length }} top tracks
+                            </span>
+                            <span class="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-4 py-2 text-emerald-100">
+                                <i class="fas fa-user-friends text-emerald-300"></i>
+                                {{ (user.top_artists or []) | length }} favorite artists
+                            </span>
+                            <span class="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-4 py-2 text-emerald-100">
+                                <i class="fas fa-tags text-emerald-300"></i>
+                                {{ (user.genres or []) | length }} genres loved
+                            </span>
+                        </div>
+
+                        {% if user.id == session.get('user_id') %}
+                        <button onclick="toggleEditForm()" class="mt-8 inline-flex items-center gap-2 rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-900/40 transition hover:bg-emerald-400">
+                            <i class="fas fa-edit"></i>
+                            Edit Profile
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    <!-- Edit Form -->
+                    <div id="edit-form" class="hidden mt-8">
+                        <form id="profile-form" action="/update_profile" method="POST" class="space-y-5 rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-inner shadow-black/40">
+                            <div>
+                                <label for="bio" class="mb-2 block text-xs font-semibold uppercase tracking-widest text-emerald-200">Bio</label>
+                                <textarea id="bio" name="bio" class="w-full rounded-2xl border border-transparent bg-slate-800/70 p-3 text-sm text-emerald-50 placeholder-emerald-200/50 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500" rows="3">{{ user.bio }}</textarea>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <div>
+                                    <label for="age" class="mb-2 block text-xs font-semibold uppercase tracking-widest text-emerald-200">Age</label>
+                                    <input type="number" id="age" name="age" class="w-full rounded-2xl border border-transparent bg-slate-800/70 p-3 text-sm text-emerald-50 placeholder-emerald-200/50 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500" value="{{ user.age }}">
+                                </div>
+                                <div>
+                                    <label for="location" class="mb-2 block text-xs font-semibold uppercase tracking-widest text-emerald-200">Location</label>
+                                    <input type="text" id="location" name="location" class="w-full rounded-2xl border border-transparent bg-slate-800/70 p-3 text-sm text-emerald-50 placeholder-emerald-200/50 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500" value="{{ user.location }}">
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full rounded-full bg-gradient-to-r from-emerald-400 to-lime-400 px-6 py-3 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-900/50 transition hover:from-emerald-300 hover:to-lime-300">
+                                Save Changes
+                            </button>
+                        </form>
+                    </div>
                 </div>
-            </div>
-            {% endfor %}
-        </div>
+            </section>
 
+            <!-- Listening Insights -->
+            <section class="space-y-8">
+                <div class="rounded-3xl border border-white/5 bg-slate-900/60 p-6 shadow-xl shadow-black/30">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-2xl font-semibold text-emerald-100">Top Tracks</h2>
+                        <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-200">{{ (user.top_tracks or []) | length }} tracks</span>
+                    </div>
+                    <p class="mt-2 text-sm text-emerald-100/80">Dive into the songs that define {{ user.display_name }}'s current vibe.</p>
+                    <div class="mt-6 space-y-4">
+                        {% for track in (user.top_tracks or []) %}
+                        <div class="flex items-center gap-4 rounded-2xl border border-white/5 bg-white/5 p-3 transition hover:border-emerald-400/50 hover:bg-emerald-500/10">
+                            <img src="{{ track.image }}" alt="Album cover of track {{ track.name }}" class="h-16 w-16 rounded-2xl object-cover shadow-lg">
+                            <div class="flex-1">
+                                <a href="{{ track.spotify_url }}" target="_blank" class="text-lg font-semibold text-emerald-100 hover:text-emerald-300">{{ track.name }}</a>
+                                <p class="text-xs uppercase tracking-widest text-emerald-200/70 mt-1">Album</p>
+                                <p class="text-sm text-emerald-100/80">{{ track.album }}</p>
+                            </div>
+                            <div class="hidden sm:flex flex-col items-end text-right text-xs text-emerald-200/70">
+                                <span class="uppercase tracking-widest">Artists</span>
+                                <p class="text-sm text-emerald-100/80">{{ ", ".join(track.artists) }}</p>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="text-sm text-emerald-200/60">No tracks found. Start listening to populate this section.</p>
+                        {% endfor %}
+                    </div>
+                </div>
 
+                <div class="grid lg:grid-cols-2 gap-6">
+                    <div class="rounded-3xl border border-white/5 bg-slate-900/60 p-6 shadow-xl shadow-black/30">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-xl font-semibold text-emerald-100">Top Artists</h2>
+                            <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-200">{{ (user.top_artists or []) | length }}</span>
+                        </div>
+                        <div class="mt-5 space-y-4">
+                            {% for artist in (user.top_artists or []) %}
+                            <div class="flex items-center gap-4 rounded-2xl border border-white/5 bg-white/5 p-3 transition hover:border-emerald-400/50 hover:bg-emerald-500/10">
+                                <img src="{{ artist.image }}" alt="Image of artist {{ artist.name }}" class="h-14 w-14 rounded-2xl object-cover shadow-lg">
+                                <div>
+                                    <a href="{{ artist.spotify_url }}" target="_blank" class="font-semibold text-emerald-100 hover:text-emerald-300">{{ artist.name }}</a>
+                                    <p class="text-xs text-emerald-200/70 mt-1">{{ ", ".join(artist.genres) }}</p>
+                                </div>
+                            </div>
+                            {% else %}
+                            <p class="text-sm text-emerald-200/60">We don't have favorite artists yet. Follow more creators to unlock this list.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
 
-        <!-- En Popüler Türler -->
-        <div class="mb-10">
-            <h2 class="text-2xl font-bold text-green-500 mb-4">Top Genres</h2>
-            <ul class="flex flex-wrap gap-2">
-                {% for genre in (user.genres or []) %}
-                <li class="bg-gray-700 text-white px-3 py-1 rounded-full">{{ genre }}</li>
-                {% endfor %}
-            </ul>
+                    <div class="rounded-3xl border border-white/5 bg-slate-900/60 p-6 shadow-xl shadow-black/30">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-xl font-semibold text-emerald-100">Top Genres</h2>
+                            <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-200">{{ (user.genres or []) | length }}</span>
+                        </div>
+                        <p class="mt-2 text-sm text-emerald-100/80">A palette of sounds shaping {{ user.display_name }}'s playlists.</p>
+                        <ul class="mt-5 flex flex-wrap gap-2">
+                            {% for genre in (user.genres or []) %}
+                            <li class="rounded-full bg-gradient-to-r from-emerald-500/30 to-cyan-500/30 px-4 py-2 text-sm font-medium text-emerald-50 shadow-lg shadow-emerald-900/30">{{ genre }}</li>
+                            {% else %}
+                            <li class="text-sm text-emerald-200/60">Genres will appear once you explore more music.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </section>
         </div>
     </div>
 
-    <footer class="text-center mt-10 py-4 bg-black">
-        <p>© 2025 Harmony | Built with ❤️ for music lovers.</p>
+    <footer class="border-t border-white/5 bg-slate-950/80 py-6 text-center text-xs text-emerald-200">
+        <p>© 2025 Harmony · Built with <span class="text-emerald-400">❤️</span> for music lovers.</p>
     </footer>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Düzenleme formunu açıp kapatma fonksiyonu
             function toggleEditForm() {
                 const form = document.getElementById('edit-form');
                 form.classList.toggle('hidden');
             }
-            window.toggleEditForm = toggleEditForm; // global erişim için
-        
-            // Profil formunun AJAX ile gönderilmesi
+            window.toggleEditForm = toggleEditForm;
+
             const profileForm = document.getElementById('profile-form');
             if (profileForm) {
                 profileForm.addEventListener('submit', function(e) {
-                    e.preventDefault(); // Formun varsayılan submit işlemini engelle
+                    e.preventDefault();
                     const formData = new FormData(this);
-        
+
                     fetch('/update_profile', {
                         method: 'POST',
                         body: formData
@@ -126,7 +209,7 @@
                 });
             }
         });
-        </script>
-        
+    </script>
+
 </body>
 </html>
