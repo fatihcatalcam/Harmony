@@ -376,15 +376,6 @@ def messages(user_id):
 
     current_user = User.query.get(current_user_id)
 
-    messages = (
-        Message.query.filter(
-            ((Message.sender_id == current_user_id) & (Message.receiver_id == user_id))
-            | ((Message.sender_id == user_id) & (Message.receiver_id == current_user_id))
-        )
-        .order_by(Message.timestamp)
-        .all()
-    )
-
     matches = []
     if current_user:
         matches = (
@@ -399,6 +390,31 @@ def messages(user_id):
             .all()
         )
 
+    has_match = check_match(current_user_id, user_id)
+
+    if not has_match:
+        return (
+            render_template(
+                "message.html",
+                messages=[],
+                user=chat_partner,
+                matches=matches,
+                current_user=current_user,
+                current_user_id=current_user_id,
+                error_message="You can only exchange messages with users you've matched with.",
+            ),
+            403,
+        )
+
+    messages = (
+        Message.query.filter(
+            ((Message.sender_id == current_user_id) & (Message.receiver_id == user_id))
+            | ((Message.sender_id == user_id) & (Message.receiver_id == current_user_id))
+        )
+        .order_by(Message.timestamp)
+        .all()
+    )
+
     return render_template(
         "message.html",
         messages=messages,
@@ -406,6 +422,7 @@ def messages(user_id):
         matches=matches,
         current_user=current_user,
         current_user_id=current_user_id,
+        error_message=None,
     )
 
 

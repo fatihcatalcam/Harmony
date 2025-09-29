@@ -42,44 +42,54 @@
   <!-- Sağ Bölüm: Sohbet Ekranı -->
   <div class="flex flex-col flex-grow h-screen">
     <!-- Chat Header -->
-    <div class="flex items-center p-4 bg-white border-b border-gray-200">
-      <img alt="User profile picture" class="rounded-full h-12 w-12" src="{{ user.profile_image or 'https://placehold.co/50x50' }}"/>
-      <div class="ml-4">
-        <p id="chat-user-name" class="text-lg font-medium">{{ user.display_name }}</p>
+      <div class="flex items-center p-4 bg-white border-b border-gray-200">
+        {% if user %}
+          <img alt="User profile picture" class="rounded-full h-12 w-12" src="{{ user.profile_image or 'https://placehold.co/50x50' }}"/>
+          <div class="ml-4">
+            <p id="chat-user-name" class="text-lg font-medium">{{ user.display_name }}</p>
+          </div>
+        {% endif %}
       </div>
-    </div>
     
     <!-- Chat Messages -->
-    <div id="chat-messages" class="flex flex-col flex-grow h-0 p-4 overflow-auto bg-gray-100">
-      {% if messages %}
-        {% for msg in messages %}
-          <div class="flex w-full mt-2 space-x-3 max-w-xs {% if msg.sender_id == current_user_id %}ml-auto justify-end{% endif %}">
-            <div>
-              <div class="{% if msg.sender_id == current_user_id %}bg-blue-600 text-white{% else %}bg-gray-300{% endif %} p-3 rounded-lg">
-                <p class="text-sm">{{ msg.content }}</p>
-              </div>
-              <span class="text-xs text-gray-500">{{ msg.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
-            </div>
+      <div id="chat-messages" class="flex flex-col flex-grow h-0 p-4 overflow-auto bg-gray-100">
+        {% if error_message %}
+          <div class="bg-red-100 border border-red-200 text-red-800 px-4 py-3 rounded relative" role="alert">
+            <span class="block sm:inline">{{ error_message }}</span>
           </div>
-        {% endfor %}
-      {% else %}
-        <p class="text-gray-500 text-center mt-4">No messages yet. Start chatting!</p>
-      {% endif %}
-    </div>
+        {% elif messages %}
+          {% for msg in messages %}
+            <div class="flex w-full mt-2 space-x-3 max-w-xs {% if msg.sender_id == current_user_id %}ml-auto justify-end{% endif %}">
+              <div>
+                <div class="{% if msg.sender_id == current_user_id %}bg-blue-600 text-white{% else %}bg-gray-300{% endif %} p-3 rounded-lg">
+                  <p class="text-sm">{{ msg.content }}</p>
+                </div>
+                <span class="text-xs text-gray-500">{{ msg.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-gray-500 text-center mt-4">No messages yet. Start chatting!</p>
+        {% endif %}
+      </div>
     
     <!-- Mesaj Gönderme Formu (SocketIO ile gönderim yapılacak) -->
-    <div class="bg-white p-4 flex items-center">
-      <form id="message-form" class="flex flex-grow">
+      <div class="bg-white p-4 flex items-center">
+        {% if not error_message %}
+          <form id="message-form" class="flex flex-grow">
 
-        <!-- Gizli alanlar: sender ve receiver ID -->
-        <input type="hidden" id="sender-id" value="{{ current_user_id }}">
-        <input type="hidden" id="receiver-id" value="{{ user.id }}">
-        <input name="message" id="message-input" class="flex-grow border rounded-full py-2 px-4 mr-2 text-sm" placeholder="Type a message..." type="text">
-        <button type="submit" id="send-button" class="bg-blue-600 text-white rounded-full p-2">
-          <i class="fas fa-paper-plane"></i>
-        </button>
-      </form>
-    </div>
+            <!-- Gizli alanlar: sender ve receiver ID -->
+            <input type="hidden" id="sender-id" value="{{ current_user_id }}">
+            <input type="hidden" id="receiver-id" value="{{ user.id }}">
+            <input name="message" id="message-input" class="flex-grow border rounded-full py-2 px-4 mr-2 text-sm" placeholder="Type a message..." type="text">
+            <button type="submit" id="send-button" class="bg-blue-600 text-white rounded-full p-2">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </form>
+        {% else %}
+          <p class="text-gray-500 text-sm">Messaging is disabled because you haven't matched with this user yet.</p>
+        {% endif %}
+      </div>
   </div>
 
   <script>
