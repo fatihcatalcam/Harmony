@@ -1,3 +1,4 @@
+from flask import session
 from flask_socketio import emit, join_room, leave_room
 
 from .extensions import db, socketio
@@ -39,6 +40,11 @@ def on_leave(data):
 
 @socketio.on("send_message")
 def handle_send_message(data):
+    session_user_id = session.get("user_id")
+    if session_user_id is None:
+        emit("error", {"error": "User not logged in"})
+        return
+
     sender_id = data.get("sender_id")
     receiver_id = data.get("receiver_id")
     content = data.get("content")
@@ -46,13 +52,27 @@ def handle_send_message(data):
         emit("error", {"error": "Invalid data"})
         return
 
-    message = Message(sender_id=sender_id, receiver_id=receiver_id, content=content)
+    try:
+        sender_id = int(sender_id)
+        receiver_id = int(receiver_id)
+        session_sender_id = int(session_user_id)
+    except (TypeError, ValueError):
+        emit("error", {"error": "Invalid sender or receiver ID"})
+        return
+
+    if sender_id != session_sender_id:
+        emit("error", {"error": "Forbidden"})
+        return
+
+    message = Message(
+        sender_id=session_sender_id, receiver_id=receiver_id, content=content
+    )
     db.session.add(message)
     db.session.commit()
 
-    room = get_room(sender_id, receiver_id)
+    room = get_room(session_sender_id, receiver_id)
     message_data = {
-        "sender_id": sender_id,
+        "sender_id": session_sender_id,
         "receiver_id": receiver_id,
         "content": content,
         "timestamp": message.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
