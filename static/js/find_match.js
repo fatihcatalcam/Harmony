@@ -125,9 +125,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
   // Opsiyonel: Kart üzerindeki like/pass butonlarına click event ekleyelim.
   cards.forEach(card => {
-    const passBtn = card.querySelector(".btn.pass");
-    const likeBtn = card.querySelector(".btn.like");
-  
+    const passBtn = card.querySelector(".pass");
+    const likeBtn = card.querySelector(".like");
+
     if (passBtn) {
       passBtn.addEventListener("click", () => {
         handlePass(card);
