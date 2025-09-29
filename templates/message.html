@@ -25,7 +25,7 @@
   <div class="flex-grow overflow-auto">
     {% if matches and matches|length > 0 %}
       {% for match in matches %}
-        <a href="{{ url_for('chat', chat_partner_id=match.id) }}" class="block p-4 flex items-center border-b border-gray-200 hover:bg-gray-100">
+        <a href="{{ url_for('messages', user_id=match.id) }}" class="block p-4 flex items-center border-b border-gray-200 hover:bg-gray-100 {% if match.id == user.id %}bg-gray-100{% endif %}">
           <img alt="{{ match.display_name }}" class="rounded-full h-12 w-12" src="{{ match.profile_image or 'https://placehold.co/50x50' }}"/>
           <div class="ml-4">
             <p class="text-sm font-medium">{{ match.display_name }}</p>
@@ -53,12 +53,12 @@
     <div id="chat-messages" class="flex flex-col flex-grow h-0 p-4 overflow-auto bg-gray-100">
       {% if messages %}
         {% for msg in messages %}
-          <div class="flex w-full mt-2 space-x-3 max-w-xs {% if msg.sender_id == session.get('user_id') %}ml-auto justify-end{% endif %}">
+          <div class="flex w-full mt-2 space-x-3 max-w-xs {% if msg.sender_id == current_user_id %}ml-auto justify-end{% endif %}">
             <div>
-              <div class="{% if msg.sender_id == session.get('user_id') %}bg-blue-600 text-white{% else %}bg-gray-300{% endif %} p-3 rounded-lg">
+              <div class="{% if msg.sender_id == current_user_id %}bg-blue-600 text-white{% else %}bg-gray-300{% endif %} p-3 rounded-lg">
                 <p class="text-sm">{{ msg.content }}</p>
               </div>
-              <span class="text-xs text-gray-500">{{ msg.timestamp }}</span>
+              <span class="text-xs text-gray-500">{{ msg.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
             </div>
           </div>
         {% endfor %}
@@ -72,7 +72,7 @@
       <form id="message-form" class="flex flex-grow">
 
         <!-- Gizli alanlar: sender ve receiver ID -->
-        <input type="hidden" id="sender-id" value="{{ session.get('user_id') }}">
+        <input type="hidden" id="sender-id" value="{{ current_user_id }}">
         <input type="hidden" id="receiver-id" value="{{ user.id }}">
         <input name="message" id="message-input" class="flex-grow border rounded-full py-2 px-4 mr-2 text-sm" placeholder="Type a message..." type="text">
         <button type="submit" id="send-button" class="bg-blue-600 text-white rounded-full p-2">
