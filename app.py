@@ -1,5 +1,6 @@
 import os
 import random
+import secrets
 from datetime import datetime
 
 import requests
@@ -206,17 +207,26 @@ def profile():
 @limiter.limit("100 per day")
 def login():
     scope = "user-top-read"
+    state = secrets.token_urlsafe(16)
+    session["oauth_state"] = state
     auth_url = (
         f"https://accounts.spotify.com/authorize"
         f"?client_id={SPOTIFY_CLIENT_ID}"
         f"&response_type=code"
         f"&redirect_uri={SPOTIFY_REDIRECT_URI}"
         f"&scope={scope}"
+        f"&state={state}"
     )
     return redirect(auth_url)
 
 @app.route("/callback")
 def callback():
+    incoming_state = request.args.get("state")
+    stored_state = session.get("oauth_state")
+    if not stored_state or incoming_state != stored_state:
+        session.clear()
+        return jsonify({"error": "State mismatch"}), 400
+    session.pop("oauth_state", None)
     code = request.args.get("code")
     token_url = "https://accounts.spotify.com/api/token"
     token_data = {
