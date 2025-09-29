@@ -68,7 +68,7 @@ body.auth-body::after {
   gap: 32px;
 
   /* Eklenenler ↓ */
-   transform: scale(0.8) translateY(-90px); /* kutuyu %30 küçült, sonra 30px yukarı kaydır */
+   transform: scale(0.8) translateY(-90px); /* kutuyu %20 küçült, sonra 90px yukarı kaydır */
   transform-origin: center;
 }
 
