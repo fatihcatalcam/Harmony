@@ -568,14 +568,39 @@ def get_messages_api(receiver_id):
 @app.route('/messages/<int:user_id>')
 def messages(user_id):
     current_user_id = session.get("user_id")
-    user = User.query.filter_by(id=user_id).first()
-    if not user:
+    if not current_user_id:
+        return redirect(url_for("login"))
+
+    chat_partner = User.query.filter_by(id=user_id).first()
+    if not chat_partner:
         return "User not found", 404
+
+    current_user = User.query.get(current_user_id)
+
     messages = Message.query.filter(
         ((Message.sender_id == current_user_id) & (Message.receiver_id == user_id)) |
         ((Message.sender_id == user_id) & (Message.receiver_id == current_user_id))
     ).order_by(Message.timestamp).all()
-    return render_template("message.html", messages=messages, user=user)
+
+    matches = []
+    if current_user:
+        matches = db.session.query(User).join(
+            Like, (Like.to_user_id == User.id)
+        ).filter(
+            Like.from_user_id == current_user.id,
+            Like.to_user_id.in_(
+                db.session.query(Like.from_user_id).filter(Like.to_user_id == current_user.id)
+            )
+        ).all()
+
+    return render_template(
+        "message.html",
+        messages=messages,
+        user=chat_partner,
+        matches=matches,
+        current_user=current_user,
+        current_user_id=current_user_id,
+    )
 
 @app.route('/messages', methods=['POST'])
 def send_message():
