@@ -431,18 +431,38 @@ def check_match(user_id, other_user_id):
 def check_matches():
     current_user_id = session.get("user_id")
     if not current_user_id:
-        return render_template("check-matches.html", matches=[])
+        return render_template(
+            "check-matches.html",
+            matches=[],
+            profile_picture_url=session.get("profile_picture_url"),
+        )
 
-    likes_received = Like.query.filter_by(to_user_id=current_user_id).with_entities(Like.from_user_id).all()
-    likes_given = Like.query.filter_by(from_user_id=current_user_id).with_entities(Like.to_user_id).all()
+    likes_received = Like.query.filter_by(to_user_id=current_user_id).all()
+    likes_given = Like.query.filter_by(from_user_id=current_user_id).all()
 
-    liked_users = {like[0] for like in likes_given}
-    matched_users = [like[0] for like in likes_received if like[0] in liked_users]
+    likes_given_map = {like.to_user_id: like.created_at for like in likes_given}
+    matched_users_with_time = []
 
-    if not matched_users:
-        return render_template("check-matches.html", matches=[])
+    for like in likes_received:
+        other_user_id = like.from_user_id
+        if other_user_id in likes_given_map:
+            match_time = max(like.created_at, likes_given_map[other_user_id])
+            matched_users_with_time.append((other_user_id, match_time))
 
-    matched_profiles = User.query.filter(User.id.in_(matched_users)).all()
+    if not matched_users_with_time:
+        return render_template(
+            "check-matches.html",
+            matches=[],
+            profile_picture_url=session.get("profile_picture_url"),
+        )
+
+    matched_users_with_time.sort(key=lambda item: item[1], reverse=True)
+    ordered_match_ids = [user_id for user_id, _ in matched_users_with_time]
+
+    matched_profiles = User.query.filter(User.id.in_(ordered_match_ids)).all()
+    profiles_by_id = {user.id: user for user in matched_profiles}
+    ordered_profiles = [profiles_by_id[user_id] for user_id in ordered_match_ids if user_id in profiles_by_id]
+
     matches_data = [
         {
             "id": user.id,
@@ -451,10 +471,14 @@ def check_matches():
             "top_artists": user.top_artists,
             "top_tracks": user.top_tracks,
         }
-        for user in matched_profiles
+        for user in ordered_profiles
     ]
-    
-    return render_template("check-matches.html", matches=matches_data)
+
+    return render_template(
+        "check-matches.html",
+        matches=matches_data,
+        profile_picture_url=session.get("profile_picture_url"),
+    )
 
 @app.route('/chat')
 def chat():
