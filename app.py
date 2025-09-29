@@ -55,7 +55,8 @@ csp = {
         "https://cdn.tailwindcss.com",
         "https://cdnjs.cloudflare.com",
         "https://cdn.jsdelivr.net",
-        "https://unpkg.com"
+        "https://unpkg.com",
+        "https://cdn.socket.io"
     ]
 }
 
