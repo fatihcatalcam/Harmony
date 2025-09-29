@@ -1,0 +1,194 @@
+:root {
+  --spotify-green: #1db954;
+  --spotify-green-dark: #169044;
+  --surface-dark: rgba(18, 18, 18, 0.75);
+  --surface-light: rgba(255, 255, 255, 0.08);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.78);
+  --border-subtle: rgba(255, 255, 255, 0.12);
+  --shadow-elevated: 0 25px 45px rgba(10, 10, 10, 0.6);
+  --shadow-floating: 0 25px 50px rgba(0, 0, 0, 0.55);
+  --blur-strength: blur(18px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body.auth-body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: 'Poppins', 'Helvetica Neue', Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle at top left, rgba(29, 185, 84, 0.65), transparent 60%),
+    radial-gradient(circle at bottom right, rgba(94, 59, 238, 0.55), transparent 55%),
+    linear-gradient(135deg, #0b0f15 0%, #0f1015 45%, #050507 100%);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+body.auth-body::before,
+body.auth-body::after {
+  content: '';
+  position: absolute;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.45;
+  z-index: 0;
+}
+
+body.auth-body::before {
+  background: #1db954;
+  top: -140px;
+  left: -140px;
+}
+
+body.auth-body::after {
+  background: #6c63ff;
+  bottom: -160px;
+  right: -120px;
+}
+
+.auth-wrapper {
+  position: relative;
+  z-index: 1;
+  width: min(420px, 92vw);
+  background: var(--surface-dark);
+  backdrop-filter: var(--blur-strength);
+  border-radius: 24px;
+  padding: 48px 42px;
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-floating);
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.brand-badge {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand-badge .logo-ring {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(29, 185, 84, 0.85), rgba(13, 68, 31, 0.85));
+  display: grid;
+  place-items: center;
+  box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.08), 0 12px 18px rgba(29, 185, 84, 0.25);
+}
+
+.brand-badge .logo-ring svg {
+  width: 26px;
+  height: 26px;
+  fill: #ffffff;
+}
+
+.brand-badge h1 {
+  font-size: clamp(1.8rem, 2.8vw, 2.3rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+.copy-block {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.copy-block h2 {
+  margin: 0;
+  font-size: clamp(1.4rem, 2.4vw, 1.8rem);
+  font-weight: 600;
+}
+
+.copy-block p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.feature-list {
+  display: grid;
+  gap: 12px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--surface-light);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.feature-item .icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(29, 185, 84, 0.16);
+  color: var(--spotify-green);
+  font-size: 1.1rem;
+}
+
+.feature-item span {
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+}
+
+.login-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 22px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: linear-gradient(135deg, var(--spotify-green), var(--spotify-green-dark));
+  border-radius: 999px;
+  text-decoration: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 18px 35px rgba(29, 185, 84, 0.32);
+}
+
+.login-button:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 24px 45px rgba(29, 185, 84, 0.42);
+}
+
+.login-button svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+.legal-text {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.55);
+  text-align: center;
+  line-height: 1.5;
+}
+
+@media (max-width: 540px) {
+  .auth-wrapper {
+    padding: 36px 28px;
+    gap: 26px;
+  }
+
+  .feature-item {
+    padding: 10px 12px;
+  }
+}
