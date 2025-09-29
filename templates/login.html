@@ -1,13 +1,53 @@
-<!-- templates/login.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Login with Spotify</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign in • Harmony</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
 </head>
-<body>
-    <h1>Login with Spotify</h1>
-    <p>Click the link below to start Spotify OAuth</p>
-    <a href="{{ auth_url }}">Login</a>
+<body class="auth-body">
+    <main class="auth-wrapper" role="main">
+        <div class="brand-badge" aria-label="Harmony brand">
+            <div class="logo-ring" aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                    <path d="M21.57 0H2.43A2.43 2.43 0 0 0 0 2.43v19.14A2.43 2.43 0 0 0 2.43 24h19.14A2.43 2.43 0 0 0 24 21.57V2.43A2.43 2.43 0 0 0 21.57 0Zm-2.09 17.46a1 1 0 0 1-1.38.34c-3.79-2.32-8.56-2.85-14.18-1.6a1 1 0 0 1-.44-1.95c6.09-1.38 11.3-.77 15.53 1.81a1 1 0 0 1 .47 1.4Zm1.84-4.13a1.23 1.23 0 0 1-1.7.41c-4.33-2.66-10.93-3.44-16-1.93a1.23 1.23 0 0 1-.68-2.37c5.73-1.64 12.92-.76 17.85 2.18a1.23 1.23 0 0 1 .43 1.71Zm.16-4.32C16.48 5.92 8.5 5.63 3.78 7a1.46 1.46 0 0 1-.84-2.8c5.38-1.63 13.92-1.28 19.32 2.08a1.46 1.46 0 1 1-1.5 2.53Z" />
+                </svg>
+            </div>
+            <h1>Harmony</h1>
+        </div>
+
+        <section class="copy-block">
+            <h2>Log in with Spotify to begin</h2>
+            <p>Connect your Spotify account to generate personalised matches, share playlists and discover new music companions curated around your listening habits.</p>
+        </section>
+
+        <section class="feature-list" aria-label="What you get">
+            <div class="feature-item">
+                <span class="icon" aria-hidden="true">🎧</span>
+                <span>See your top artists, tracks and genres in a gorgeous dashboard.</span>
+            </div>
+            <div class="feature-item">
+                <span class="icon" aria-hidden="true">🤝</span>
+                <span>Find music matches with similar tastes and start conversations instantly.</span>
+            </div>
+            <div class="feature-item">
+                <span class="icon" aria-hidden="true">🔒</span>
+                <span>Your credentials stay safe — authentication happens securely through Spotify.</span>
+            </div>
+        </section>
+
+        <a class="login-button" href="{{ auth_url }}">
+            <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                <path d="M12 0a12 12 0 1 0 12 12A12.013 12.013 0 0 0 12 0Zm5.31 17.35a.75.75 0 0 1-1.03.26c-3.01-1.83-6.78-2.24-11.22-1.26a.75.75 0 1 1-.31-1.47c4.84-1.03 8.99-.57 12.4 1.4a.75.75 0 0 1 .26 1.07Zm1.37-3.44a.94.94 0 0 1-1.29.3c-3.44-2.1-8.68-2.72-12.71-1.53a.94.94 0 1 1-.54-1.8c4.52-1.3 10.21-.6 14.1 1.72a.94.94 0 0 1 .44 1.3Zm.13-3.6c-4.12-2.47-11.06-2.7-15.11-1.52a1.13 1.13 0 1 1-.66-2.16c4.67-1.43 12.47-1.15 17.15 1.66a1.13 1.13 0 0 1-1.17 2.02Z" />
+            </svg>
+            Continue with Spotify
+        </a>
+
+        <p class="legal-text">By continuing you agree to let Harmony access your Spotify listening data so we can craft better matches. We never post on your behalf.</p>
+    </main>
 </body>
 </html>

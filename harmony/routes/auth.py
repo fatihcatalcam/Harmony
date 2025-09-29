@@ -1,7 +1,16 @@
 import secrets
 
 import requests
-from flask import Blueprint, current_app, jsonify, redirect, request, session, url_for
+from flask import (
+    Blueprint,
+    current_app,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 
 from ..extensions import db, limiter
 from ..models import User
@@ -28,7 +37,7 @@ def login():
         f"&scope={scope}"
         f"&state={state}"
     )
-    return redirect(auth_url)
+    return render_template("login.html", auth_url=auth_url)
 
 
 @bp.route("/callback")
