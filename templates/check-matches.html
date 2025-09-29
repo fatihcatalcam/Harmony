@@ -3,185 +3,325 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Harmony - All Matches</title>
+    <title>Harmony · Matches</title>
     <style>
+        :root {
+            --bg-primary: #06080f;
+            --bg-secondary: rgba(21, 27, 38, 0.85);
+            --accent: #1db954;
+            --accent-soft: rgba(29, 185, 84, 0.12);
+            --text-primary: #f5f7fa;
+            --text-secondary: #b8c2d6;
+            --card-shadow: 0 18px 45px rgba(6, 8, 15, 0.45);
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #121212, #1db954);
-            color: #fff;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
+            color: var(--text-primary);
+            background: radial-gradient(circle at top right, rgba(29, 185, 84, 0.22), transparent 35%),
+                radial-gradient(circle at bottom left, rgba(88, 101, 242, 0.18), transparent 40%),
+                var(--bg-primary);
         }
 
         header {
-            background: #121212;
-            padding: 15px 20px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid #1db954;
+            justify-content: space-between;
+            padding: 20px clamp(18px, 4vw, 48px);
+            background: rgba(6, 8, 15, 0.8);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         header h1 {
             margin: 0;
-            font-size: 2.5rem;
-            color: #1db954;
-            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            font-size: clamp(1.6rem, 3vw, 2.4rem);
+            letter-spacing: 0.04em;
+        }
+
+        header h1 a {
+            color: inherit;
+            text-decoration: none;
         }
 
         .header-right {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 18px;
         }
 
         header img {
-            width: 50px;
-            height: 50px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 0 10px #1DB954, 0 0 20px #1DB954, 0 0 30px #1DB954;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            object-fit: cover;
+            border: 2px solid transparent;
+            transition: transform 0.2s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 10px 25px rgba(29, 185, 84, 0.25);
         }
 
         header img:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 20px #1DB954, 0 0 40px #1DB954, 0 0 60px #1DB954;
+            transform: translateY(-2px) scale(1.03);
+            border-color: rgba(29, 185, 84, 0.5);
+            box-shadow: 0 16px 32px rgba(29, 185, 84, 0.32);
         }
 
-        .btn.neon-logout {
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             padding: 10px 20px;
-            background: #1DB954;
-            color: #fff;
-            border-radius: 30px;
-            font-size: 1rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            letter-spacing: 0.02em;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            color: var(--bg-primary);
+            background: var(--accent);
             text-decoration: none;
-            font-weight: bold;
-            transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 0 10px #1DB954, 0 0 20px #1DB954, 0 0 30px #1DB954;
+            transition: transform 0.2s ease, box-shadow 0.3s ease, background 0.3s ease;
+            box-shadow: 0 14px 30px rgba(29, 185, 84, 0.35);
         }
 
-        .btn.neon-logout:hover {
-            background: #1aa34a;
-            transform: scale(1.1);
-            box-shadow: 0 0 20px #1DB954, 0 0 40px #1DB954, 0 0 60px #1DB954;
+        .btn:hover {
+            transform: translateY(-2px);
+            background: #1aa74d;
+            box-shadow: 0 18px 36px rgba(29, 185, 84, 0.45);
         }
 
-        .container {
+        .page-wrapper {
             flex: 1;
-            text-align: center;
-            padding: 20px;
+            width: min(1100px, 92vw);
+            margin: 0 auto;
+            padding: clamp(24px, 4vw, 48px) 0 80px;
         }
 
-        .container h2 {
-            margin-bottom: 20px;
-            font-size: 2rem;
+        .page-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 18px;
+            margin-bottom: clamp(26px, 4vw, 42px);
+        }
+
+        .page-title {
+            max-width: 520px;
+        }
+
+        .page-title h2 {
+            margin: 0;
+            font-size: clamp(2rem, 5vw, 2.9rem);
+            letter-spacing: 0.02em;
+        }
+
+        .page-title p {
+            margin: 12px 0 0;
+            color: var(--text-secondary);
+            line-height: 1.6;
         }
 
         .matches-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: flex-start; /* Sol üstten başlar */
-            gap: 15px;
-            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: clamp(18px, 3vw, 28px);
         }
 
         .match-card {
-            background: #191414;
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            width: 140px;
+            position: relative;
+            padding: 26px 22px 24px;
+            border-radius: 20px;
+            background: linear-gradient(155deg, rgba(22, 27, 38, 0.92), rgba(13, 18, 27, 0.85));
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            box-shadow: var(--card-shadow);
+            transition: transform 0.25s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .match-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(29, 185, 84, 0.65), transparent 65%);
+            opacity: 0;
+            transition: opacity 0.35s ease;
+            pointer-events: none;
         }
 
         .match-card:hover {
-            transform: scale(1.1);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.5);
+            transform: translateY(-6px);
+            border-color: rgba(29, 185, 84, 0.25);
+            box-shadow: 0 22px 48px rgba(6, 8, 15, 0.6);
         }
 
-        .match-card img {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            margin-bottom: 10px;
-            box-shadow: 0 0 8px #1db954;
+        .match-card:hover::before {
+            opacity: 1;
+        }
+
+        .match-avatar {
+            width: 82px;
+            height: 82px;
+            border-radius: 22px;
+            margin: 0 auto 18px;
+            display: grid;
+            place-items: center;
+            background: var(--accent-soft);
+            border: 1px solid rgba(29, 185, 84, 0.3);
+            box-shadow: inset 0 0 0 1px rgba(29, 185, 84, 0.2);
+        }
+
+        .match-avatar img {
+            width: 72px;
+            height: 72px;
+            border-radius: 18px;
+            object-fit: cover;
+        }
+
+        .match-card h3 {
+            margin: 0 0 8px;
+            font-size: 1.15rem;
         }
 
         .match-card p {
-            color: #fff;
-            font-size: 0.9rem;
-            margin: 5px 0;
+            margin: 0 0 18px;
+            color: var(--text-secondary);
+            font-size: 0.92rem;
         }
 
-        .card-buttons {
+        .card-actions {
             display: flex;
-            flex-direction: column;
-            gap: 10px; /* Butonlar arası boşluk */
-            margin-top: 10px;
+            gap: 12px;
         }
 
-        .card-buttons .btn {
-            background: #1db954;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: background 0.3s ease;
+        .card-actions .btn {
+            flex: 1;
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            border-radius: 12px;
+            box-shadow: none;
+        }
+
+        .btn.secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+        }
+
+        .btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.14);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+        }
+
+        .card-actions .btn.secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+        }
+
+        .card-actions .btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        .empty-state {
+            padding: 60px;
             text-align: center;
-            text-decoration: none;
+            background: rgba(10, 14, 22, 0.7);
+            border-radius: 24px;
+            border: 1px dashed rgba(255, 255, 255, 0.12);
+            color: var(--text-secondary);
         }
 
-        .card-buttons .btn:hover {
-            background: #16a085;
+        .empty-state h3 {
+            margin: 0 0 10px;
+            font-size: 1.4rem;
+            color: var(--text-primary);
         }
 
         footer {
+            padding: 26px;
             text-align: center;
-            padding: 10px 0;
             font-size: 0.9rem;
-            background: #121212;
-            border-top: 2px solid #1db954;
-            position: fixed;
-            width: 100%;
-            bottom: 0;
-            left: 0;
+            color: var(--text-secondary);
+            background: rgba(6, 8, 15, 0.82);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        @media (max-width: 640px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+
+            .header-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .card-actions {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1><a href="/index1" style="text-decoration: none; color: inherit;">Harmony</a></h1>
+        <h1><a href="/index1">Harmony</a></h1>
         <div class="header-right">
             <img id="profile-pic" src="{{ profile_picture_url }}" alt="Profile">
-            <a href="/logout" class="btn neon-logout">Logout</a>
+            <a href="/logout" class="btn">Logout</a>
         </div>
     </header>
 
-    <div class="container">
-        <h2>Your Matches</h2>
+    <main class="page-wrapper">
+        <div class="page-header">
+            <div class="page-title">
+                <h2>Find Your Perfect Match</h2>
+                <p>Discover music lovers who vibe with your playlists. Keep the conversation flowing and explore what you have in common.</p>
+            </div>
+            {% if matches %}
+            <a href="/index1" class="btn secondary">Back to dashboard</a>
+            {% endif %}
+        </div>
+
+        {% if matches %}
         <div class="matches-container">
             {% for match in matches %}
-            <div class="match-card">
-                <img src="{{ match.profile_image or 'https://placehold.co/150x150' }}" alt="{{ match.display_name }}">
-                <p>{{ match.display_name }}</p>
-                <div class="card-buttons">
-                    <a href="/profile/{{ match.id }}" class="btn">Check Profile</a>
+            <article class="match-card">
+                <div class="match-avatar">
+                    <img src="{{ match.profile_image or 'https://placehold.co/150x150' }}" alt="{{ match.display_name }}">
+                </div>
+                <h3>{{ match.display_name }}</h3>
+                <p>Tap into their profile or drop a message to start a new harmony.</p>
+                <div class="card-actions">
+                    <a href="/profile/{{ match.id }}" class="btn secondary">View profile</a>
                     <a href="#" class="btn message-btn" data-user-id="{{ match.id }}">Message</a>
                 </div>
-            </div>
+            </article>
             {% endfor %}
         </div>
-    </div>
+        {% else %}
+        <section class="empty-state">
+            <h3>No matches yet</h3>
+            <p>Keep listening, liking and exploring playlists. Once you have a mutual match, they will appear here.</p>
+        </section>
+        {% endif %}
+    </main>
 
     <footer>
-        <p>&copy; 2025 Harmony | Built with ❤️ for music lovers.</p>
+        <p>&copy; 2025 Harmony · Crafted for music lovers worldwide.</p>
     </footer>
 
     <script src="/static/js/app.js"></script>
