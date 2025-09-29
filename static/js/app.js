@@ -173,6 +173,15 @@ async function loadMessages(userId, userName) {
     }
 }
 
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+        return decodeURIComponent(parts.pop().split(';').shift());
+    }
+    return null;
+}
+
 // Function: Send Message (API çağrısı içeren versiyon)
 async function sendMessage(senderId, receiverId, content) {
     if (!content || !receiverId) {
@@ -181,9 +190,15 @@ async function sendMessage(senderId, receiverId, content) {
     }
 
     try {
+        const csrfToken = getCookie("csrf_token") || getCookie("_csrf_token");
+        const headers = { "Content-Type": "application/json" };
+        if (csrfToken) {
+            headers["X-CSRFToken"] = csrfToken;
+        }
+
         const response = await fetch("/messages", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers,
             body: JSON.stringify({
                 sender_id: senderId,
                 receiver_id: receiverId,
