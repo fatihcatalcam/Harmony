@@ -331,7 +331,17 @@ def get_profiles_api():
 
 @bp.route("/api/messages/<int:receiver_id>")
 def get_messages_api(receiver_id):
-    user_id = session.get("user_id")
+    session_user_id = session.get("user_id")
+    if not session_user_id:
+        return jsonify({"error": "User not logged in"}), 401
+
+    if receiver_id == session_user_id:
+        return jsonify({"error": "Forbidden"}), 403
+
+    if not check_match(session_user_id, receiver_id):
+        return jsonify({"error": "Forbidden"}), 403
+
+    user_id = session_user_id
     messages = (
         Message.query.filter(
             ((Message.sender_id == user_id) & (Message.receiver_id == receiver_id))
