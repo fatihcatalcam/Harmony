@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
-from harmony import create_app, socketio
+from Harmony import create_app, socketio
 
 app = create_app()
 
