@@ -273,6 +273,25 @@
       z-index: 2000;
       animation: growCross 1s ease-in-out forwards;
     }
+    .no-profiles-message {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+      padding: 20px;
+      color: #f5f5f5;
+    }
+    .no-profiles-message h2 {
+      margin-bottom: 10px;
+      font-size: 1.8rem;
+      color: #1db954;
+    }
+    .no-profiles-message p {
+      font-size: 1rem;
+      color: #e0e0e0;
+    }
   </style>
 </head>
 <body>
@@ -288,34 +307,41 @@
 
   <div class="container">
     <div id="profiles-container">
-      {% for profile in profiles %}
-        <div class="card" data-id="{{ profile.id }}">
-          <h2>{{ profile.display_name }}</h2>
-          <p><strong>Top Genres:</strong> {{ (profile.genres or [])[:5] | join(', ') }}</p>
-          <div class="top-artists">
-            <h3>Top Artists</h3>
-            {% for artist in (profile.top_artists or [])[:3] %}
-              <div class="artist">
-                <img src="{{ artist.image or 'https://placehold.co/40x40' }}" alt="{{ artist.name }}">
-                <p>{{ artist.name }}</p>
-              </div>
-            {% endfor %}
-          </div>
-          <div class="top-tracks">
-            <h3>Top Tracks</h3>
-            {% for track in (profile.top_tracks or [])[:3] %}
-              <div class="song">
-                <img src="{{ track.image or 'https://placehold.co/40x40' }}" alt="{{ track.name }}">
-                <p>{{ track.name }}</p>
-              </div>
-            {% endfor %}
-          </div>
-          <div class="actions">
-            <button class="btn pass"><i class="fas fa-times"></i></button>
-            <button class="btn like"><i class="fas fa-heart"></i></button>
-          </div>
+      {% if no_profiles %}
+        <div class="no-profiles-message">
+          <h2>No more profiles to explore</h2>
+          <p>You've seen everyone for now. Check back later for new matches!</p>
         </div>
-      {% endfor %}
+      {% else %}
+        {% for profile in profiles %}
+          <div class="card" data-id="{{ profile.id }}">
+            <h2>{{ profile.display_name }}</h2>
+            <p><strong>Top Genres:</strong> {{ (profile.genres or [])[:5] | join(', ') }}</p>
+            <div class="top-artists">
+              <h3>Top Artists</h3>
+              {% for artist in (profile.top_artists or [])[:3] %}
+                <div class="artist">
+                  <img src="{{ artist.image or 'https://placehold.co/40x40' }}" alt="{{ artist.name }}">
+                  <p>{{ artist.name }}</p>
+                </div>
+              {% endfor %}
+            </div>
+            <div class="top-tracks">
+              <h3>Top Tracks</h3>
+              {% for track in (profile.top_tracks or [])[:3] %}
+                <div class="song">
+                  <img src="{{ track.image or 'https://placehold.co/40x40' }}" alt="{{ track.name }}">
+                  <p>{{ track.name }}</p>
+                </div>
+              {% endfor %}
+            </div>
+            <div class="actions">
+              <button class="btn pass"><i class="fas fa-times"></i></button>
+              <button class="btn like"><i class="fas fa-heart"></i></button>
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
     </div>
   </div>
 

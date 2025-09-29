@@ -368,32 +368,38 @@ def find_profiles():
         return redirect("/login")
     current_user = User.query.get(user_id)
     profile_picture_url = current_user.profile_image if current_user else None
-    profiles = User.query.all()
-    if profiles and len(profiles) > 0:
-        return render_template("match.html",
-                               profiles=profiles,
-                               profile_picture_url=profile_picture_url)
-    else:
-        fake_user = {
-            "display_name": "John Doe",
-            "profile_image": None,
-            "location": "New York, USA",
-            "bio": "Music lover, concert goer, and vinyl collector.",
-            "top_artists": [
-                {"name": "Artist 1", "image": None},
-                {"name": "Artist 2", "image": None},
-                {"name": "Artist 3", "image": None},
-            ],
-            "top_tracks": [
-                {"name": "Song 1", "image": None},
-                {"name": "Song 2", "image": None},
-                {"name": "Song 3", "image": None},
-            ]
-        }
-        return render_template("match.html",
-                               profiles=[],
-                               user=fake_user,
-                               profile_picture_url=profile_picture_url)
+    liked_rows = (
+        Like.query
+        .filter_by(from_user_id=user_id)
+        .with_entities(Like.to_user_id)
+        .all()
+    )
+    liked_user_ids = {row[0] for row in liked_rows}
+
+    mutual_match_ids = set()
+    if liked_user_ids:
+        mutual_rows = (
+            Like.query
+            .filter(Like.from_user_id.in_(list(liked_user_ids)), Like.to_user_id == user_id)
+            .with_entities(Like.from_user_id)
+            .all()
+        )
+        mutual_match_ids = {row[0] for row in mutual_rows}
+
+    exclude_ids = {user_id} | liked_user_ids | mutual_match_ids
+
+    profiles_query = User.query
+    if exclude_ids:
+        profiles_query = profiles_query.filter(User.id.notin_(list(exclude_ids)))
+
+    profiles = profiles_query.all()
+
+    return render_template(
+        "match.html",
+        profiles=profiles,
+        profile_picture_url=profile_picture_url,
+        no_profiles=len(profiles) == 0,
+    )
 
 @csrf.exempt
 @app.route('/api/like_profile', methods=['POST'])
