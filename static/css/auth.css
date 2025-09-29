@@ -66,7 +66,12 @@ body.auth-body::after {
   display: flex;
   flex-direction: column;
   gap: 32px;
+
+  /* Eklenenler ↓ */
+   transform: scale(0.8) translateY(-90px); /* kutuyu %30 küçült, sonra 30px yukarı kaydır */
+  transform-origin: center;
 }
+
 
 .brand-badge {
   display: flex;
