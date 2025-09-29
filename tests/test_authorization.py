@@ -149,3 +149,21 @@ def test_get_messages_success_for_mutual_match(app, client):
     assert data[0]["content"] == "Hello"
     assert data[0]["sender_id"] == user1_id
     assert data[0]["receiver_id"] == receiver_id
+
+
+def test_messages_view_forbidden_without_mutual_match(app, client):
+    with app.app_context():
+        user1 = User(spotify_id="view_user1", display_name="View User 1")
+        user2 = User(spotify_id="view_user2", display_name="View User 2")
+        db.session.add_all([user1, user2])
+        db.session.commit()
+
+        user1_id = user1.id
+        receiver_id = user2.id
+
+    with client.session_transaction() as session_data:
+        session_data["user_id"] = user1_id
+
+    response = client.get(f"/messages/{receiver_id}")
+    assert response.status_code == 403
+    assert "You can only exchange messages with users you" in response.get_data(as_text=True)
