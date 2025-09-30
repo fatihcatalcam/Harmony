@@ -16,6 +16,96 @@ from ..extensions import csrf, db
 from ..models import Like, Message, User
 
 
+def _to_preference_set(items):
+    """Convert a stored preference value into a normalized set of strings."""
+
+    if not items:
+        return set()
+
+    if isinstance(items, dict):
+        items = items.values()
+
+    preference_set = set()
+
+    for item in items:
+        if isinstance(item, dict):
+            value = item.get("name") or item.get("id") or str(item)
+        elif isinstance(item, (list, tuple, set)):
+            # Flatten nested iterables (e.g. ["rock", "pop"]) without recursion depth concerns
+            for nested in item:
+                if nested:
+                    preference_set.add(str(nested).strip().lower())
+            continue
+        else:
+            value = item
+
+        if value:
+            preference_set.add(str(value).strip().lower())
+
+    return preference_set
+
+
+def _jaccard_similarity(set_a, set_b):
+    if not set_a or not set_b:
+        return 0.0
+
+    union = set_a | set_b
+    if not union:
+        return 0.0
+
+    intersection = set_a & set_b
+    return len(intersection) / len(union)
+
+
+def calculate_blend_score(current_user, candidate):
+    """Calculate a weighted similarity score between two users.
+
+    The score is inspired by Jaccard similarity and combines three preference
+    categories: artists, tracks, and genres. When data is missing for a
+    category, it is skipped from the weighting. The final score is normalised
+    to a range between 0 and 1.
+    """
+
+    if not current_user or not candidate:
+        return 0.0
+
+    weights = {
+        "artists": 0.4,
+        "tracks": 0.4,
+        "genres": 0.2,
+    }
+
+    similarities = []
+
+    current_artists = _to_preference_set(getattr(current_user, "top_artists", None))
+    candidate_artists = _to_preference_set(getattr(candidate, "top_artists", None))
+    artist_similarity = _jaccard_similarity(current_artists, candidate_artists)
+    if current_artists or candidate_artists:
+        similarities.append((weights["artists"], artist_similarity))
+
+    current_tracks = _to_preference_set(getattr(current_user, "top_tracks", None))
+    candidate_tracks = _to_preference_set(getattr(candidate, "top_tracks", None))
+    track_similarity = _jaccard_similarity(current_tracks, candidate_tracks)
+    if current_tracks or candidate_tracks:
+        similarities.append((weights["tracks"], track_similarity))
+
+    current_genres = _to_preference_set(getattr(current_user, "genres", None))
+    candidate_genres = _to_preference_set(getattr(candidate, "genres", None))
+    genre_similarity = _jaccard_similarity(current_genres, candidate_genres)
+    if current_genres or candidate_genres:
+        similarities.append((weights["genres"], genre_similarity))
+
+    if not similarities:
+        return 0.0
+
+    total_weight = sum(weight for weight, _ in similarities)
+    if total_weight == 0:
+        return 0.0
+
+    weighted_score = sum(weight * similarity for weight, similarity in similarities)
+    return weighted_score / total_weight
+
+
 bp = Blueprint("main", __name__)
 
 
@@ -103,6 +193,13 @@ def find_profiles():
     current_user = User.query.get(user_id)
     profile_picture_url = current_user.profile_image if current_user else None
 
+    current_preference_sets = (
+        _to_preference_set(getattr(current_user, "top_artists", None)),
+        _to_preference_set(getattr(current_user, "top_tracks", None)),
+        _to_preference_set(getattr(current_user, "genres", None)),
+    )
+    current_has_preferences = any(current_preference_sets)
+
     liked_rows = Like.query.filter_by(from_user_id=user_id).with_entities(Like.to_user_id).all()
     liked_user_ids = {row[0] for row in liked_rows}
 
@@ -123,9 +220,28 @@ def find_profiles():
 
     profiles = profiles_query.all()
 
+    scored_profiles = []
+    for profile in profiles:
+        score = calculate_blend_score(current_user, profile)
+        candidate_preference_sets = (
+            _to_preference_set(getattr(profile, "top_artists", None)),
+            _to_preference_set(getattr(profile, "top_tracks", None)),
+            _to_preference_set(getattr(profile, "genres", None)),
+        )
+        candidate_has_preferences = any(candidate_preference_sets)
+
+        if current_has_preferences or candidate_has_preferences:
+            profile.match_score = round(score * 100)
+        else:
+            profile.match_score = None
+
+        scored_profiles.append(profile)
+
+    scored_profiles.sort(key=lambda profile: getattr(profile, "match_score", 0), reverse=True)
+
     return render_template(
         "match.html",
-        profiles=profiles,
+        profiles=scored_profiles,
         profile_picture_url=profile_picture_url,
         no_profiles=len(profiles) == 0,
     )

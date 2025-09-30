@@ -249,6 +249,46 @@
       color: var(--muted);
     }
 
+    .match-score {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .match-score__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(29, 185, 84, 0.2);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.8rem;
+      border: 1px solid rgba(29, 185, 84, 0.35);
+      letter-spacing: 0.02em;
+    }
+
+    .match-score__track {
+      position: relative;
+      flex: 1;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+    }
+
+    .match-score__fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      border-radius: inherit;
+      background: var(--primary);
+      box-shadow: 0 6px 14px rgba(29, 185, 84, 0.4);
+    }
+
     .card-section {
       background: rgba(255, 255, 255, 0.03);
       border-radius: 18px;
@@ -488,6 +528,14 @@
               <div class="card" data-id="{{ profile.id }}">
                 <div>
                   <h2>{{ profile.display_name }}</h2>
+                  {% if profile.match_score is not none %}
+                    <div class="match-score">
+                      <span class="match-score__badge">Match {{ profile.match_score }}%</span>
+                      <div class="match-score__track">
+                        <span class="match-score__fill" style="width: {{ profile.match_score }}%"></span>
+                      </div>
+                    </div>
+                  {% endif %}
                   {% if profile.genres %}
                     <div class="tags">
                       {% for genre in (profile.genres or [])[:5] %}
