@@ -13,175 +13,119 @@
     body { font-family: 'Roboto', sans-serif; }
   </style>
 </head>
-<body class="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen">
-  <div class="min-h-screen flex items-center justify-center px-4 py-6">
-    <div class="flex w-full max-w-6xl overflow-hidden rounded-3xl border border-white/60 bg-white/80 shadow-2xl backdrop-blur">
-      <!-- Sol Bölüm: Chat Listesi -->
-      <aside class="hidden border-r border-white/50 bg-white/70 p-6 lg:flex lg:w-1/3 xl:w-1/4 flex-col">
-        <div class="flex items-center justify-between">
-          <button class="rounded-full bg-white p-2 text-gray-500 shadow-sm transition hover:-translate-x-0.5 hover:text-indigo-600" onclick="window.history.back();">
-            <i class="fas fa-arrow-left"></i>
-          </button>
-          <h2 class="text-lg font-semibold text-gray-700">Chats</h2>
-        </div>
-        <div class="relative mt-6">
-          <input type="text" placeholder="Search" class="w-full rounded-full border border-gray-200 bg-white py-2 pl-10 pr-4 text-sm text-gray-600 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200" disabled>
-          <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
-        </div>
-        <div class="mt-6 flex-grow space-y-3 overflow-y-auto pr-1">
-          {% if matches and matches|length > 0 %}
-            {% for match in matches %}
-              <a href="{{ url_for('main.messages', user_id=match.id) }}" class="flex items-center gap-3 rounded-2xl border border-transparent px-4 py-3 text-left transition hover:border-indigo-100 hover:bg-indigo-50/70 {% if match.id == user.id %}bg-indigo-100/80 shadow-sm{% endif %}">
-                <div class="relative">
-                  <img alt="{{ match.display_name }}" class="h-12 w-12 rounded-full object-cover shadow" src="{{ match.profile_image or 'https://placehold.co/50x50' }}"/>
-                  <span class="absolute -bottom-1 -right-0 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-400"></span>
-                </div>
-                <div class="min-w-0">
-                  <p class="truncate text-sm font-semibold text-gray-700">{{ match.display_name }}</p>
-                  <p class="mt-1 truncate text-xs text-gray-400">Tap to continue chatting</p>
-                </div>
-              </a>
-            {% endfor %}
-          {% else %}
-            <p class="text-center text-sm text-gray-500">No matches yet.</p>
-          {% endif %}
-        </div>
-      </aside>
+<body class="bg-gray-100 h-screen flex">
+<!-- Sol Bölüm: Chat Listesi -->
+<div class="w-1/4 bg-white border-r border-gray-200 flex flex-col">
+  <div class="p-4 border-b border-gray-200 flex items-center">
+    <button class="text-gray-600" onclick="window.history.back();">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <h2 class="text-lg font-semibold ml-4">Chats</h2>
+  </div>
+  <div class="flex-grow overflow-auto">
+    {% if matches and matches|length > 0 %}
+      {% for match in matches %}
+        <a href="{{ url_for('main.messages', user_id=match.id) }}" class="block p-4 flex items-center border-b border-gray-200 hover:bg-gray-100 {% if match.id == user.id %}bg-gray-100{% endif %}">
+          <img alt="{{ match.display_name }}" class="rounded-full h-12 w-12" src="{{ match.profile_image or 'https://placehold.co/50x50' }}"/>
+          <div class="ml-4">
+            <p class="text-sm font-medium">{{ match.display_name }}</p>
+          </div>
+        </a>
+      {% endfor %}
+    {% else %}
+      <p class="text-center text-gray-500 mt-4">No matches yet.</p>
+    {% endif %}
+  </div>
+</div>
 
-      <!-- Sağ Bölüm: Sohbet Ekranı -->
-      <div class="flex flex-1 flex-col bg-white/80">
-        <!-- Chat Header -->
-        <header class="flex items-center justify-between border-b border-white/60 px-4 py-4 sm:px-8">
-          {% if user %}
-            <div class="flex items-center gap-4">
-              <div class="relative">
-                <img alt="User profile picture" class="h-12 w-12 rounded-full object-cover shadow" src="{{ user.profile_image or 'https://placehold.co/50x50' }}"/>
-                <span class="absolute -bottom-1 -right-0 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-400"></span>
-              </div>
+  
+  <!-- Sağ Bölüm: Sohbet Ekranı -->
+  <div class="flex flex-col flex-grow h-screen">
+    <!-- Chat Header -->
+      <div class="flex items-center p-4 bg-white border-b border-gray-200">
+        {% if user %}
+          <img alt="User profile picture" class="rounded-full h-12 w-12" src="{{ user.profile_image or 'https://placehold.co/50x50' }}"/>
+          <div class="ml-4">
+            <p id="chat-user-name" class="text-lg font-medium">{{ user.display_name }}</p>
+          </div>
+        {% endif %}
+      </div>
+    
+    <!-- Chat Messages -->
+      <div id="chat-messages" class="flex flex-col flex-grow h-0 p-4 overflow-auto bg-gray-100">
+        {% if error_message %}
+          <div class="bg-red-100 border border-red-200 text-red-800 px-4 py-3 rounded relative" role="alert">
+            <span class="block sm:inline">{{ error_message }}</span>
+          </div>
+        {% elif messages %}
+          {% for msg in messages %}
+            <div class="flex w-full mt-2 space-x-3 max-w-xs {% if msg.sender_id == current_user_id %}ml-auto justify-end{% endif %}">
               <div>
-                <p id="chat-user-name" class="text-lg font-semibold text-gray-800">{{ user.display_name }}</p>
-                <p class="text-xs font-medium uppercase tracking-wide text-indigo-400">Active conversation</p>
+                <div class="{% if msg.sender_id == current_user_id %}bg-blue-600 text-white{% else %}bg-gray-300{% endif %} p-3 rounded-lg">
+                  <p class="text-sm">{{ msg.content }}</p>
+                </div>
+                <span class="text-xs text-gray-500">{{ msg.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
               </div>
             </div>
-          {% endif %}
-          <div class="hidden text-gray-400 sm:flex sm:items-center sm:gap-4">
-            <button class="rounded-full bg-white p-2 shadow-sm transition hover:text-indigo-500">
-              <i class="fas fa-phone"></i>
-            </button>
-            <button class="rounded-full bg-white p-2 shadow-sm transition hover:text-indigo-500">
-              <i class="fas fa-video"></i>
-            </button>
-            <button class="rounded-full bg-white p-2 shadow-sm transition hover:text-indigo-500">
-              <i class="fas fa-ellipsis-h"></i>
-            </button>
-          </div>
-        </header>
-        <div class="border-b border-white/60 bg-white/70 px-4 py-3 lg:hidden">
-          <div class="flex items-center justify-between">
-            <h3 class="text-sm font-semibold uppercase tracking-wide text-gray-500">Your matches</h3>
-            <button type="button" class="cursor-default text-xs font-medium text-indigo-300" disabled>Manage</button>
-          </div>
-          <div class="mt-3 flex gap-3 overflow-x-auto pb-1">
-            {% if matches and matches|length > 0 %}
-              {% for match in matches %}
-                <a href="{{ url_for('main.messages', user_id=match.id) }}" class="flex flex-col items-center text-center text-xs {% if match.id == user.id %}text-indigo-600{% else %}text-gray-500{% endif %}">
-                  <img alt="{{ match.display_name }}" class="h-12 w-12 rounded-full border-2 {% if match.id == user.id %}border-indigo-200{% else %}border-transparent{% endif %} object-cover shadow" src="{{ match.profile_image or 'https://placehold.co/50x50' }}"/>
-                  <span class="mt-1 max-w-[5rem] truncate">{{ match.display_name }}</span>
-                </a>
-              {% endfor %}
-            {% else %}
-              <p class="text-xs text-gray-400">No matches yet.</p>
-            {% endif %}
-          </div>
-        </div>
-
-        <!-- Chat Messages -->
-        <div class="relative flex flex-1 flex-col overflow-hidden">
-          <div class="pointer-events-none absolute inset-0 bg-gradient-to-b from-indigo-50/60 via-transparent to-indigo-100/60"></div>
-          <div id="chat-messages" class="relative z-10 flex flex-col gap-3 overflow-y-auto px-4 py-6 sm:px-8">
-            {% if error_message %}
-              <div class="rounded-2xl border border-red-200 bg-red-50/90 px-4 py-3 text-sm text-red-700 shadow-sm" role="alert">
-                <span class="block sm:inline">{{ error_message }}</span>
-              </div>
-            {% elif messages %}
-              {% for msg in messages %}
-                <div class="flex w-full {% if msg.sender_id == current_user_id %}justify-end{% else %}justify-start{% endif %}">
-                  <div class="max-w-md">
-                    <div class="{% if msg.sender_id == current_user_id %}bg-indigo-600 text-white shadow-lg{% else %}bg-white text-gray-700 shadow{% endif %} rounded-2xl px-4 py-3 text-sm">
-                      <p class="leading-relaxed">{{ msg.content }}</p>
-                    </div>
-                    <span class="mt-1 block text-right text-xs text-gray-400">{{ msg.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
-                  </div>
-                </div>
-              {% endfor %}
-            {% else %}
-              <p class="text-center text-sm text-gray-500">No messages yet. Start chatting!</p>
-            {% endif %}
-          </div>
-        </div>
-
-        <!-- Mesaj Gönderme Formu (SocketIO ile gönderim yapılacak) -->
-        <div class="border-t border-white/60 bg-white/90 px-4 py-4 sm:px-8">
-          {% if not error_message %}
-            <form id="message-form" class="flex items-center gap-3">
-              <!-- Gizli alanlar: sender ve receiver ID -->
-              <input type="hidden" id="sender-id" value="{{ current_user_id }}">
-              <input type="hidden" id="receiver-id" value="{{ user.id }}">
-              <div class="flex-1 rounded-2xl border border-gray-200 bg-white/70 px-4 py-2 shadow-sm focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-200">
-                <input name="message" id="message-input" class="w-full bg-transparent text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none" placeholder="Type a message..." type="text">
-              </div>
-              <button type="submit" id="send-button" class="flex h-11 w-11 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg transition hover:bg-indigo-700">
-                <i class="fas fa-paper-plane"></i>
-              </button>
-            </form>
-          {% else %}
-            <p class="text-sm text-gray-500">Messaging is disabled because you haven't matched with this user yet.</p>
-          {% endif %}
-        </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-gray-500 text-center mt-4">No messages yet. Start chatting!</p>
+        {% endif %}
       </div>
-    </div>
+    
+    <!-- Mesaj Gönderme Formu (SocketIO ile gönderim yapılacak) -->
+      <div class="bg-white p-4 flex items-center">
+        {% if not error_message %}
+          <form id="message-form" class="flex flex-grow">
+
+            <!-- Gizli alanlar: sender ve receiver ID -->
+            <input type="hidden" id="sender-id" value="{{ current_user_id }}">
+            <input type="hidden" id="receiver-id" value="{{ user.id }}">
+            <input name="message" id="message-input" class="flex-grow border rounded-full py-2 px-4 mr-2 text-sm" placeholder="Type a message..." type="text">
+            <button type="submit" id="send-button" class="bg-blue-600 text-white rounded-full p-2">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </form>
+        {% else %}
+          <p class="text-gray-500 text-sm">Messaging is disabled because you haven't matched with this user yet.</p>
+        {% endif %}
+      </div>
   </div>
 
   <script>
     // SocketIO istemci tarafı kodu
     const socket = io();
 
-    const senderInput = document.getElementById('sender-id');
-    const receiverInput = document.getElementById('receiver-id');
-    const senderId = senderInput ? senderInput.value : null;
-    const receiverId = receiverInput ? receiverInput.value : null;
+    const senderId = document.getElementById('sender-id').value;
+    const receiverId = document.getElementById('receiver-id').value;
+    // Ortak odanın adı, iki ID'yi sıralı birleştiriyoruz
+    const room = [senderId, receiverId].sort().join('_');
 
-    if (senderId && receiverId) {
-      // Odaya katılma
-      socket.emit('join', { sender_id: senderId, receiver_id: receiverId });
+    // Odaya katılma
+    socket.emit('join', { sender_id: senderId, receiver_id: receiverId });
 
-      // Mesaj formu gönderim
-      const messageForm = document.getElementById('message-form');
-      if (messageForm) {
-        messageForm.addEventListener('submit', function(e) {
-          e.preventDefault();
-          const messageInput = document.getElementById('message-input');
-          const content = messageInput.value.trim();
-          if (!content) return;
-          socket.emit('send_message', { sender_id: senderId, receiver_id: receiverId, content: content });
-          messageInput.value = "";
-        });
-      }
-    }
+    // Mesaj formu gönderim
+    document.getElementById('message-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const messageInput = document.getElementById('message-input');
+      const content = messageInput.value.trim();
+      if (!content) return;
+      socket.emit('send_message', { sender_id: senderId, receiver_id: receiverId, content: content });
+      messageInput.value = "";
+    });
 
     // Yeni mesaj alındığında
     socket.on('receive_message', function(data) {
       const chatMessagesEl = document.getElementById("chat-messages");
-      if (!chatMessagesEl) return;
       const messageDiv = document.createElement("div");
-      const isCurrentUser = senderId && data.sender_id == senderId;
-      messageDiv.className = `flex w-full ${isCurrentUser ? "justify-end" : "justify-start"}`;
+      const isCurrentUser = data.sender_id == senderId;
+      messageDiv.className = `flex w-full mt-2 space-x-3 max-w-xs ${isCurrentUser ? "ml-auto justify-end" : ""}`;
       messageDiv.innerHTML = `
-        <div class="max-w-md">
-          <div class="${isCurrentUser ? "bg-indigo-600 text-white shadow-lg" : "bg-white text-gray-700 shadow"} rounded-2xl px-4 py-3 text-sm">
-            <p class="leading-relaxed">${data.content}</p>
+        <div>
+          <div class="${isCurrentUser ? "bg-blue-600 text-white" : "bg-gray-300"} p-3 rounded-lg">
+            <p class="text-sm">${data.content}</p>
           </div>
-          <span class="mt-1 block text-right text-xs text-gray-400">${data.timestamp}</span>
+          <span class="text-xs text-gray-500">${data.timestamp}</span>
         </div>
       `;
       chatMessagesEl.appendChild(messageDiv);
