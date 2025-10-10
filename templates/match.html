@@ -169,7 +169,7 @@
 
     main {
       flex: 1;
-      padding: 60px 7vw 120px;
+      padding: clamp(40px, 7vw, 60px) clamp(18px, 6vw, 80px) clamp(96px, 12vh, 120px);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -198,9 +198,10 @@
 
     .container {
       position: relative;
-      width: 100%;
-      max-width: clamp(280px, 60vw, 360px);
-      height: 470px;
+      width: min(100%, 360px);
+      max-width: 360px;
+      min-width: 0;
+      height: clamp(420px, 70vh, 520px);
       perspective: 1200px;
       display: flex;
       justify-content: center;
@@ -227,6 +228,9 @@
       flex-direction: column;
       gap: 18px;
       touch-action: none;
+      overflow: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
     }
 
     .card::before {
@@ -299,6 +303,7 @@
       color: var(--text);
       font-size: 0.8rem;
       border: 1px solid rgba(29, 185, 84, 0.25);
+      white-space: nowrap;
     }
 
     .actions {
@@ -451,12 +456,43 @@
 
     @media (max-width: 960px) {
       main {
-        padding: 40px 6vw 100px;
+        padding: 40px clamp(24px, 6vw, 48px) 100px;
         gap: 28px;
       }
 
       header {
-        padding: 20px 6vw;
+        padding: 20px clamp(24px, 6vw, 48px);
+      }
+    }
+
+    @media (max-width: 540px) {
+      header {
+        padding: 18px 20px;
+      }
+
+      main {
+        padding: 32px 20px 88px;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 320px;
+        height: clamp(400px, 75vh, 480px);
+      }
+
+      .card {
+        border-radius: 20px;
+        padding: 20px 18px;
+        gap: 16px;
+      }
+
+      .actions button {
+        width: 52px;
+        height: 52px;
+      }
+
+      .cards-wrapper p {
+        max-width: 100%;
       }
     }
   </style>
