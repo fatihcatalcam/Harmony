@@ -26,8 +26,48 @@
   <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <style>
+    :root {
+      --primary: #1db954;
+      --primary-dark: #169943;
+      --background: #0b1117;
+      --background-soft: rgba(11, 17, 23, 0.7);
+      --card: rgba(18, 18, 18, 0.85);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f5f5f5;
+      --muted: rgba(245, 245, 245, 0.75);
+      --accent: #4dd0e1;
+      --gradient: linear-gradient(135deg, rgba(29, 185, 84, 0.9), rgba(18, 18, 18, 0.95));
+    }
+
     body {
       font-family: 'Poppins', sans-serif;
+      background: var(--background);
+      color: var(--text);
+    }
+
+    /* Background Glows (Matching index1.html) */
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      filter: blur(140px);
+      z-index: -2;
+      opacity: 0.55;
+    }
+
+    body::before {
+      background: rgba(29, 185, 84, 0.5);
+      top: -160px;
+      left: -120px;
+    }
+
+    body::after {
+      background: rgba(77, 208, 225, 0.4);
+      bottom: -180px;
+      right: -140px;
     }
 
     /* Animation Styles */
@@ -156,30 +196,43 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
+
+    /* Custom Button Styles to Match Index1 */
+    .btn-primary-custom {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 12px 28px rgba(29, 185, 84, 0.25);
+    }
+
+    .btn-primary-custom:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px) scale(1.02);
+    }
   </style>
 </head>
 
-<body class="bg-[#0b1117] text-gray-100 min-h-screen flex flex-col relative overflow-x-hidden">
+<body class="min-h-screen flex flex-col relative overflow-x-hidden">
 
-  <header
-    class="w-full px-[7vw] py-6 flex justify-between items-center sticky top-0 z-40 bg-[#0b1117] border-b border-white/5">
+  <header class="w-full px-[7vw] py-6 flex justify-between items-center sticky top-0 z-40 border-b border-white/5"
+    style="background: linear-gradient(180deg, rgba(11, 17, 23, 0.92) 0%, rgba(11, 17, 23, 0) 100%); backdrop-filter: blur(18px);">
     <a href="/index1" class="text-3xl font-bold tracking-tight flex items-center gap-3 text-white">
-      <span
-        class="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-[#121212] shadow-lg shadow-emerald-500/30 text-xl">♫</span>
+      <span class="flex items-center justify-center w-10 h-10 rounded-full shadow-lg shadow-emerald-500/30 text-xl"
+        style="background: var(--gradient);">♫</span>
       Harmony
     </a>
     <div class="flex items-center gap-4">
       <a href="/profile">
         <img id="profile-pic"
           class="w-12 h-12 rounded-full border-2 border-white/10 object-cover hover:scale-105 transition shadow-lg shadow-emerald-500/20"
-          src="{{ profile_picture_url or 'https://placehold.co/50x50' }}" alt="Profile Picture">
+          src="{{ profile_picture_url or 'https://placehold.co/50x50' }}" alt="Profile Picture"
+          style="box-shadow: 0 0 0 4px rgba(29, 185, 84, 0.2);">
       </a>
       <button onclick="toggleFilter()"
-        class="flex items-center gap-2 px-5 py-3 bg-white/10 hover:bg-white/15 text-white rounded-full font-semibold transition border border-white/10">
+        class="flex items-center gap-2 px-5 py-3 bg-white/10 hover:bg-white/15 text-white rounded-full font-semibold transition border border-white/10 checkbox-btn">
         <i class="fas fa-sliders-h"></i> <span class="hidden sm:inline">Filters</span>
       </button>
       <a href="/logout"
-        class="flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full font-semibold transition shadow-lg shadow-emerald-500/25">
+        class="flex items-center gap-2 px-6 py-3 rounded-full font-semibold transition btn-primary-custom">
         Logout
       </a>
     </div>
@@ -192,7 +245,8 @@
       onclick="toggleFilter()"></div>
     <div class="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
       <div
-        class="bg-[#121212] border border-white/10 rounded-3xl w-full max-w-md shadow-2xl transform transition-all scale-95 opacity-0 scale-100-on-show opacity-100-on-show relative overflow-hidden pointer-events-auto">
+        class="border border-white/10 rounded-3xl w-full max-w-md shadow-2xl transform transition-all scale-95 opacity-0 scale-100-on-show opacity-100-on-show relative overflow-hidden pointer-events-auto"
+        style="background: var(--card);">
         <div class="px-6 py-5 border-b border-white/10 flex justify-between items-center bg-white/5">
           <h3 class="text-xl font-bold text-white flex items-center gap-2">
             <i class="fas fa-filter text-emerald-400"></i> Filter Profiles
@@ -226,7 +280,7 @@
               </div>
             </div>
             <button type="submit"
-              class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl font-bold shadow-lg shadow-emerald-500/25 transform transition hover:-translate-y-0.5 mt-2">Apply
+              class="w-full py-3.5 rounded-xl font-bold transform transition hover:-translate-y-0.5 mt-2 btn-primary-custom">Apply
               Filters</button>
           </form>
         </div>
@@ -262,7 +316,8 @@
         <div id="profiles-container" class="relative w-full h-full">
           {% if no_profiles %}
           <div
-            class="no-profiles flex flex-col items-center justify-center h-full text-center p-8 bg-[#121212] rounded-3xl border border-white/10 shadow-2xl">
+            class="no-profiles flex flex-col items-center justify-center h-full text-center p-8 rounded-3xl border border-white/10 shadow-2xl"
+            style="background: var(--card);">
             <div class="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-4 text-3xl">😢</div>
             <h2 class="text-2xl font-bold text-white mb-2">No Matches Found</h2>
             <p class="text-gray-400">Try adjusting your filters!</p>

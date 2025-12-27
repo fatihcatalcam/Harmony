@@ -13,7 +13,7 @@ def populate():
         genres_pool = ["pop", "rock", "jazz", "blues", "hip-hop", "classical", "electronic", "country"]
 
         users_created = 0
-        for _ in range(10):
+        for _ in range(50):
             fake_name = fake.first_name()
             spotify_id = f"fake_{fake.uuid4()}"
             if User.query.filter_by(spotify_id=spotify_id).first():
