@@ -140,6 +140,10 @@ def find_profiles():
         profiles_query = profiles_query.filter(User.location.ilike(f"%{location}%"))
 
     profiles = profiles_query.all()
+    
+    # Calculate Vibe Score for each profile
+    for profile in profiles:
+        profile.vibe_score = calculate_compatibility(current_user, profile)
 
     return render_template(
         "match.html",
@@ -184,6 +188,48 @@ def check_match(user_id, other_user_id):
     like_from_user = Like.query.filter_by(from_user_id=user_id, to_user_id=other_user_id).first()
     like_from_other = Like.query.filter_by(from_user_id=other_user_id, to_user_id=user_id).first()
     return like_from_user is not None and like_from_other is not None
+
+
+def calculate_compatibility(student_a, student_b):
+    """
+    Calculates a 'Vibe Score' (0-100) between two users based on shared music taste.
+    Weights: 40% Genres, 60% Top Artists.
+    """
+    if not student_a or not student_b:
+        return 0
+
+    score = 0
+    
+    # 1. Compare Genres (40%)
+    genres_a = set(student_a.genres or [])
+    genres_b = set(student_b.genres or [])
+    if genres_a and genres_b:
+        shared_genres = genres_a.intersection(genres_b)
+        # Using Jaccard similarity for genres
+        union_genres = genres_a.union(genres_b)
+        genre_similarity = len(shared_genres) / len(union_genres)
+        score += genre_similarity * 40
+
+    # 2. Compare Artists (60%)
+    # Extract just the artist names for comparison
+    artists_a = {a['name'].lower() for a in (student_a.top_artists or []) if isinstance(a, dict) and 'name' in a}
+    artists_b = {a['name'].lower() for a in (student_b.top_artists or []) if isinstance(a, dict) and 'name' in a}
+    
+    if artists_a and artists_b:
+        shared_artists = artists_a.intersection(artists_b)
+        # Since exact artist matches are rarer, we give more points per match, capped at 100% of the 60 points
+        # If they share even 1 artist, that's a huge signal.
+        if len(shared_artists) > 0:
+            # 1 shared artist = 20 points, 2 = 40, 3+ = 60
+            artist_score = min(len(shared_artists) * 20, 60)
+            score += artist_score
+    
+    # Base "Music Lover" Score
+    # If they both have music data but no direct matches, give them a baseline 20% for being on the app
+    if score == 0 and (genres_a or artists_a):
+        score = 15 + random.randint(0, 10) 
+        
+    return int(min(score, 100))
 
 
 @bp.route("/check-matches")

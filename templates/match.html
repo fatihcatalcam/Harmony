@@ -338,6 +338,16 @@
                 class="absolute inset-0 bg-gradient-to-b from-transparent via-[#121212]/30 to-[#121212] z-10 pointer-events-none">
               </div>
 
+              <!-- Vibe Score Badge -->
+              <div class="absolute top-4 right-4 z-20 px-3 py-1.5 rounded-full backdrop-blur-md border shadow-lg flex items-center gap-1.5 font-bold text-xs
+                   {{ 'bg-purple-500/20 border-purple-400 text-purple-200' if profile.vibe_score >= 90 else
+                      'bg-emerald-500/20 border-emerald-400 text-emerald-200' if profile.vibe_score >= 70 else
+                      'bg-blue-500/20 border-blue-400 text-blue-200' if profile.vibe_score >= 50 else
+                      'bg-gray-500/20 border-gray-400 text-gray-200' }}">
+                <i class="fas fa-fire-alt {{ 'animate-pulse' if profile.vibe_score >= 90 }}"></i>
+                {{ profile.vibe_score }}% Match
+              </div>
+
               <div class="absolute inset-x-0 bottom-0 p-5 z-20 flex flex-col justify-end">
                 <h2 class="text-3xl font-bold text-white mb-2 drop-shadow-md truncate pr-2">{{ profile.display_name }}
                 </h2>
