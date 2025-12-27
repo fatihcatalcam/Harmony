@@ -12,7 +12,7 @@ from flask import (
     url_for,
 )
 
-from ..extensions import csrf, db
+from ..extensions import csrf, db, socketio
 from ..models import Like, Message, User
 
 
@@ -68,7 +68,6 @@ def view_profile(user_id):
     )
 
 
-@csrf.exempt
 @bp.route("/update_profile", methods=["POST"])
 def update_profile():
     user_id = session.get("user_id")
@@ -121,6 +120,25 @@ def find_profiles():
     if exclude_ids:
         profiles_query = profiles_query.filter(User.id.notin_(list(exclude_ids)))
 
+    min_age = request.args.get("min_age")
+    max_age = request.args.get("max_age")
+    location = request.args.get("location")
+
+    if min_age:
+        try:
+            profiles_query = profiles_query.filter(User.age >= int(min_age))
+        except ValueError:
+            pass
+    
+    if max_age:
+        try:
+            profiles_query = profiles_query.filter(User.age <= int(max_age))
+        except ValueError:
+            pass
+
+    if location:
+        profiles_query = profiles_query.filter(User.location.ilike(f"%{location}%"))
+
     profiles = profiles_query.all()
 
     return render_template(
@@ -131,7 +149,6 @@ def find_profiles():
     )
 
 
-@csrf.exempt
 @bp.route("/api/like_profile", methods=["POST"])
 def like_profile():
     current_user_id = session.get("user_id")
@@ -152,6 +169,12 @@ def like_profile():
     db.session.commit()
 
     if check_match(current_user_id, profile_id):
+        current_user = User.query.get(current_user_id)
+        socketio.emit(
+            "match_found",
+            {"match_name": current_user.display_name, "match_id": current_user.id},
+            room=f"user_{profile_id}",
+        )
         return jsonify({"message": "It's a match!"}), 200
 
     return jsonify({"message": "Profile liked!"}), 200
@@ -460,6 +483,9 @@ def send_message():
 
     if sender_id != session_sender_id:
         return handle_auth_error(403, "Forbidden")
+
+    if not check_match(sender_id, receiver_id):
+        return handle_auth_error(403, "Forbidden: You are not matched with this user")
 
     message = Message(
         sender_id=session_sender_id, receiver_id=receiver_id, content=content

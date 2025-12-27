@@ -2,21 +2,21 @@
  * find_match_interact.js - Interact.js ile Tinder-Style Swipe & Animasyonlar
  ***********************************************************/
 
-// DOMContentLoaded: Kartları hazırla, draggable yap ve Interact.js ile sürükleme mantığını başlat.
-document.addEventListener("DOMContentLoaded", function() {
-  const container = document.querySelector(".container");
+document.addEventListener("DOMContentLoaded", function () {
+  const container = document.querySelector(".tinder-container");
   const cards = Array.from(document.querySelectorAll(".card"));
 
   if (!cards || cards.length === 0) {
-    container.innerHTML = `<p class="text-center text-gray-500">No profiles to display!</p>`;
-    return;
+    if (container) {
+      container.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-center p-8"><h2 class="text-2xl font-bold text-white mb-2">No Matches Found</h2><p class="text-gray-400">Check back later!</p></div>`;
+    }
   }
 
   // Her kart için başlangıç kümülatif dx ve dy değerlerini sıfırlıyoruz.
   cards.forEach(card => {
-    card.currentDx = 0; // kümülatif x yönü
-    card.currentDy = 0; // kümülatif y yönü
-    card.style.touchAction = "none"; // dokunmatik cihazlarda default scroll davranışını engelle
+    card.currentDx = 0;
+    card.currentDy = 0;
+    card.style.touchAction = "none";
   });
 
   // Interact.js ile kartları draggable yapıyoruz.
@@ -27,30 +27,20 @@ document.addEventListener("DOMContentLoaded", function() {
       end: dragEndListener
     }
   });
-  
 
-  // Sürükleme hareketi sırasında çalışan fonksiyon
   function dragMoveListener(event) {
     const target = event.target;
-    // Kümülatif dx ve dy değerlerine, o anki hareket miktarını ekliyoruz.
     target.currentDx = (target.currentDx || 0) + event.dx;
     target.currentDy = (target.currentDy || 0) + event.dy;
-    // Debug log: Her hareket adımındaki dx, dy ve toplam x
-    console.log(`dragMoveListener: dx: ${event.dx} dy: ${event.dy} cumulative x: ${target.currentDx}`);
     target.style.transform = `translate(${target.currentDx}px, ${target.currentDy}px)`;
   }
 
-  // Sürükleme bittiğinde çalışan fonksiyon
   async function dragEndListener(event) {
     const target = event.target;
-  
-    // gerçek konumu CSS transformdan al
     const style = window.getComputedStyle(target);
     const matrix = new DOMMatrixReadOnly(style.transform);
     const cumulativeX = matrix.m41;
-  
-    console.log("Gerçek cumulativeX:", cumulativeX);
-  
+
     if (cumulativeX > 50) {
       await handleLike(target);
     } else if (cumulativeX < -50) {
@@ -64,29 +54,27 @@ document.addEventListener("DOMContentLoaded", function() {
       }, 350);
     }
   }
-  
-  
 
-  // Kartı sağa fırlatarak "like" işlemi yapan fonksiyon
   async function handleLike(card) {
     card.style.transition = "transform 0.5s";
     card.style.transform = "translate(400px, 0px) rotate(30deg)";
     const profileId = card.getAttribute("data-id");
-    
-    console.log("Like edilen profil ID:", profileId); // Bunu mutlaka ekle
-    
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
     try {
       const res = await fetch("/api/like_profile", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken
+        },
         body: JSON.stringify({ profile_id: profileId })
       });
-  
+
       if (!res.ok) throw new Error(`Failed to like profile: ${res.statusText}`);
       const result = await res.json();
-      
-      console.log("Backend response:", result); // Backend'den gelen cevabı gör
-  
+
       if (result.message === "It's a match!") {
         showMatchText();
       } else {
@@ -96,15 +84,13 @@ document.addEventListener("DOMContentLoaded", function() {
       console.error("Error liking profile:", error);
       alert("An error occurred. Please try again.");
     }
-    
+
     setTimeout(() => {
       card.remove();
       checkEmptyStack();
     }, 500);
   }
-  
 
-  // Kartı sola fırlatarak "pass" işlemi yapan fonksiyon
   function handlePass(card) {
     card.style.transition = "transform 0.5s";
     card.style.transform = "translate(-400px, 0px) rotate(-30deg)";
@@ -115,11 +101,11 @@ document.addEventListener("DOMContentLoaded", function() {
     }, 500);
   }
 
-  // Eğer tüm kartlar kaldırılmışsa, container'a mesaj ekler.
   function checkEmptyStack() {
+    const container = document.querySelector(".tinder-container");
     const remaining = container.querySelectorAll(".card");
     if (remaining.length === 0) {
-      container.innerHTML = `<p class="text-center text-gray-500">No more profiles!</p>`;
+      container.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-center p-8"><h2 class="text-2xl font-bold text-white mb-2">No Matches Found</h2><p class="text-gray-400">Check back later!</p></div>`;
     }
   }
 
@@ -138,20 +124,72 @@ document.addEventListener("DOMContentLoaded", function() {
         await handleLike(card);
       });
     }
+    const superLikeBtn = card.querySelector(".super-like");
+    if (superLikeBtn) {
+      superLikeBtn.addEventListener("click", async () => {
+        await handleSuperLike(card);
+      });
+    }
   });
-  
-  
+
+  async function handleSuperLike(card) {
+    card.style.transition = "transform 0.5s";
+    card.style.transform = "translate(0px, -600px) scale(0.5)"; // Fly up
+    const profileId = card.getAttribute("data-id");
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    try {
+      // Send super_like: true flag
+      const res = await fetch("/api/like_profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken
+        },
+        body: JSON.stringify({ profile_id: profileId, super_like: true })
+      });
+
+      if (!res.ok) throw new Error(`Failed to like profile`);
+      const result = await res.json();
+
+      if (result.message === "It's a match!") {
+        showMatchText();
+      } else {
+        showStar(); // Show star animation
+      }
+
+    } catch (err) {
+      console.error(err);
+    }
+
+    setTimeout(() => {
+      card.remove();
+      checkEmptyStack();
+    }, 500);
+  }
+
+  // Socket.IO Initialization for Real-Time Match Alerts
+  const socket = io();
+
+  socket.on("connect", () => {
+    console.log("Connected to notification socket");
+  });
+
+  socket.on("match_found", (data) => {
+    console.log("Real-time match notification received:", data);
+    showMatchPopup(data.match_name);
+  });
+
 });
 
 /***********************************************************
  * Animasyon Fonksiyonları
  ***********************************************************/
+
 function showHeart() {
   const heart = document.createElement("div");
   heart.className = "heart-animation";
-  // Stil ve içerik: Kalp simgesi, örneğin Font Awesome kullanarak
   heart.innerHTML = "<i class='fas fa-heart' style='font-size: 80px; color: rgba(255,255,255,0.8);'></i>";
-  // Merkezi ve üstte overlay gibi gösterim için konumlandırma
   heart.style.position = "fixed";
   heart.style.top = "50%";
   heart.style.left = "50%";
@@ -160,12 +198,10 @@ function showHeart() {
   heart.style.opacity = "0";
   heart.style.transition = "opacity 0.5s ease, transform 0.5s ease";
   document.body.appendChild(heart);
-  // Animasyonu tetikleyelim
   setTimeout(() => {
     heart.style.opacity = "1";
     heart.style.transform = "translate(-50%, -50%) scale(1.2)";
   }, 50);
-  // Animasyon bittikten sonra kaldır
   setTimeout(() => { heart.remove(); }, 1000);
 }
 
@@ -207,4 +243,58 @@ function showCross() {
     cross.style.transform = "translate(-50%, -50%) scale(1.2)";
   }, 50);
   setTimeout(() => { cross.remove(); }, 1000);
+}
+
+function showStar() {
+  const star = document.createElement("div");
+  star.className = "star-animation";
+  star.innerHTML = "<i class='fas fa-star' style='font-size: 80px; color: #3b82f6;'></i>";
+  star.style.position = "fixed";
+  star.style.top = "50%";
+  star.style.left = "50%";
+  star.style.transform = "translate(-50%, -50%)";
+  star.style.zIndex = "2000";
+  star.style.opacity = "0";
+  star.style.transition = "opacity 0.5s ease, transform 0.5s ease";
+  document.body.appendChild(star);
+  setTimeout(() => {
+    star.style.opacity = "1";
+    star.style.transform = "translate(-50%, -50%) scale(1.5) rotate(360deg)";
+  }, 50);
+  setTimeout(() => { star.remove(); }, 1000);
+}
+
+function showMatchPopup(matchName) {
+  const popup = document.createElement("div");
+  popup.className = "match-popup";
+  popup.innerHTML = `
+    <div class="content">
+      <i class="fas fa-heart text-5xl text-emerald-500 mb-4 animate-bounce"></i>
+      <h2>It's a Match!</h2>
+      <p>You and ${matchName} liked each other.</p>
+      <button onclick="this.parentElement.parentElement.remove()" class="mt-4 px-6 py-2 bg-emerald-500 text-white rounded-full font-bold hover:bg-emerald-600 transition">Keep Swiping</button>
+    </div>
+  `;
+
+  // Basic styles
+  Object.assign(popup.style, {
+    position: 'fixed',
+    top: '0', left: '0', width: '100%', height: '100%',
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    zIndex: '3000', opacity: '0', transition: 'opacity 0.3s ease'
+  });
+
+  const content = popup.querySelector('.content');
+  Object.assign(content.style, {
+    textAlign: 'center', color: 'white', padding: '2rem',
+    backgroundColor: '#1a1a1a', borderRadius: '1rem', border: '1px solid #333',
+    minWidth: '300px'
+  });
+
+  document.body.appendChild(popup);
+
+  requestAnimationFrame(() => {
+    popup.style.opacity = '1';
+  });
 }

@@ -2,7 +2,14 @@ from flask import session
 from flask_socketio import emit, join_room, leave_room
 
 from .extensions import db, socketio
-from .models import Message
+from .extensions import db, socketio
+from .models import Message, Like
+
+
+def check_match(user_id, other_user_id):
+    like_from_user = Like.query.filter_by(from_user_id=user_id, to_user_id=other_user_id).first()
+    like_from_other = Like.query.filter_by(from_user_id=other_user_id, to_user_id=user_id).first()
+    return like_from_user is not None and like_from_other is not None
 
 
 def get_room(sender_id, receiver_id):
@@ -12,7 +19,10 @@ def get_room(sender_id, receiver_id):
 
 @socketio.on("connect")
 def on_connect():
-    print("Bir istemci bağlandı.")
+    user_id = session.get("user_id")
+    if user_id:
+        join_room(f"user_{user_id}")
+    print(f"Bir istemci bağlandı. User ID: {user_id}")
 
 
 @socketio.on("disconnect")
@@ -62,6 +72,10 @@ def handle_send_message(data):
 
     if sender_id != session_sender_id:
         emit("error", {"error": "Forbidden"})
+        return
+
+    if not check_match(sender_id, receiver_id):
+        emit("error", {"error": "Forbidden: You are not matched with this user"})
         return
 
     message = Message(

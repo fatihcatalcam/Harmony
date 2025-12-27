@@ -2,14 +2,19 @@ from pathlib import Path
 import sys
 
 import pytest
+import werkzeug
+try:
+    werkzeug.__version__
+except AttributeError:
+    werkzeug.__version__ = "3.0.0"
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from harmony import create_app
-from harmony.extensions import csrf, db, talisman
+from Harmony import create_app
+from Harmony.extensions import csrf, db, talisman
 
 
 @pytest.fixture(scope="session")

@@ -22,7 +22,7 @@ bp = Blueprint("auth", __name__)
 @bp.route("/login")
 @limiter.limit("100 per day")
 def login():
-    scope = "user-top-read"
+    scope = "user-top-read user-read-email"
     state = secrets.token_urlsafe(16)
     session["oauth_state"] = state
 

@@ -1,23 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ user.display_name }}'s Profile</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"></link>
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    </link>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
 </head>
+
 <body class="min-h-screen bg-slate-950 text-white relative overflow-x-hidden">
     <div class="absolute inset-0 -z-10">
-        <div class="absolute -top-48 -left-32 w-96 h-96 bg-emerald-500 rounded-full blur-3xl opacity-30 animate-pulse"></div>
-        <div class="absolute top-1/2 right-0 w-[28rem] h-[28rem] bg-lime-500 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+        <div class="absolute -top-48 -left-32 w-96 h-96 bg-emerald-500 rounded-full blur-3xl opacity-30 animate-pulse">
+        </div>
+        <div
+            class="absolute top-1/2 right-0 w-[28rem] h-[28rem] bg-lime-500 rounded-full blur-3xl opacity-20 animate-pulse">
+        </div>
         <div class="absolute -bottom-32 left-1/2 w-72 h-72 bg-cyan-500 rounded-full blur-3xl opacity-25"></div>
     </div>
 
     <div class="max-w-6xl mx-auto px-6 py-10">
         <div class="flex items-center justify-between mb-6">
-            <a href="/index1" class="inline-flex items-center gap-2 px-5 py-2 text-sm font-semibold tracking-wide text-emerald-100 bg-emerald-600/70 rounded-full shadow-xl shadow-emerald-900/40 backdrop-blur-sm transition hover:bg-emerald-500 hover:shadow-emerald-900/60">
+            <a href="/index1"
+                class="inline-flex items-center gap-2 px-5 py-2 text-sm font-semibold tracking-wide text-emerald-100 bg-emerald-600/70 rounded-full shadow-xl shadow-emerald-900/40 backdrop-blur-sm transition hover:bg-emerald-500 hover:shadow-emerald-900/60">
                 <i class="fas fa-arrow-left"></i>
                 <span>Back to Discover</span>
             </a>
@@ -29,16 +37,20 @@
 
         <div class="grid lg:grid-cols-[1.1fr_1.3fr] gap-8">
             <!-- Profile Card -->
-            <section class="relative overflow-hidden rounded-3xl border border-white/5 bg-white/5 backdrop-blur-xl shadow-2xl shadow-emerald-900/30">
-                <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-transparent to-slate-900/70"></div>
+            <section
+                class="relative overflow-hidden rounded-3xl border border-white/5 bg-white/5 backdrop-blur-xl shadow-2xl shadow-emerald-900/30">
+                <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-transparent to-slate-900/70">
+                </div>
                 <div class="relative p-8">
                     <div class="flex flex-col items-center text-center">
                         <div class="relative">
                             <span class="absolute inset-0 rounded-full bg-emerald-500/40 blur-xl"></span>
-                            <img src="{{ user.profile_image }}" alt="Profile image of {{ user.display_name }}" class="relative w-36 h-36 rounded-full object-cover ring-4 ring-emerald-400/60 shadow-2xl">
+                            <img src="{{ user.profile_image }}" alt="Profile image of {{ user.display_name }}"
+                                class="relative w-36 h-36 rounded-full object-cover ring-4 ring-emerald-400/60 shadow-2xl">
                         </div>
                         <h1 class="mt-6 text-3xl font-extrabold tracking-tight text-white">{{ user.display_name }}</h1>
-                        <p class="mt-3 text-base text-emerald-100/90 leading-relaxed">{{ user.bio or "Bio: No bio available." }}</p>
+                        <p class="mt-3 text-base text-emerald-100/90 leading-relaxed">{{ user.bio or "Bio: No bio
+                            available." }}</p>
 
                         <div class="mt-6 w-full grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-emerald-100/80">
                             <div class="flex items-center gap-3 rounded-2xl bg-white/5 px-4 py-3">
@@ -51,29 +63,34 @@
                             <div class="flex items-center gap-3 rounded-2xl bg-white/5 px-4 py-3">
                                 <i class="fas fa-map-marker-alt text-emerald-300"></i>
                                 <div>
-                                    <p class="font-semibold uppercase tracking-widest text-xs text-emerald-300">Location</p>
+                                    <p class="font-semibold uppercase tracking-widest text-xs text-emerald-300">Location
+                                    </p>
                                     <p class="text-lg">{{ user.location or "N/A" }}</p>
                                 </div>
                             </div>
                         </div>
 
                         <div class="mt-6 flex flex-wrap justify-center gap-3 text-xs font-semibold tracking-wide">
-                            <span class="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-4 py-2 text-emerald-100">
+                            <span
+                                class="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-4 py-2 text-emerald-100">
                                 <i class="fas fa-headphones text-emerald-300"></i>
                                 {{ (user.top_tracks or []) | length }} top tracks
                             </span>
-                            <span class="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-4 py-2 text-emerald-100">
+                            <span
+                                class="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-4 py-2 text-emerald-100">
                                 <i class="fas fa-user-friends text-emerald-300"></i>
                                 {{ (user.top_artists or []) | length }} favorite artists
                             </span>
-                            <span class="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-4 py-2 text-emerald-100">
+                            <span
+                                class="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-4 py-2 text-emerald-100">
                                 <i class="fas fa-tags text-emerald-300"></i>
                                 {{ (user.genres or []) | length }} genres loved
                             </span>
                         </div>
 
                         {% if user.id == session.get('user_id') %}
-                        <button onclick="toggleEditForm()" class="mt-8 inline-flex items-center gap-2 rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-900/40 transition hover:bg-emerald-400">
+                        <button onclick="toggleEditForm()"
+                            class="mt-8 inline-flex items-center gap-2 rounded-full bg-emerald-500 px-6 py-2 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-900/40 transition hover:bg-emerald-400">
                             <i class="fas fa-edit"></i>
                             Edit Profile
                         </button>
@@ -83,19 +100,27 @@
                             <div class="rounded-2xl border border-white/5 bg-white/5 p-5 shadow-xl shadow-black/30">
                                 <div class="flex items-center justify-between">
                                     <h2 class="text-lg font-semibold text-emerald-100">Top Artists</h2>
-                                    <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-200">{{ (user.top_artists or []) | length }}</span>
+                                    <span
+                                        class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-200">{{
+                                        (user.top_artists or []) | length }}</span>
                                 </div>
                                 <div class="mt-4 space-y-3">
                                     {% for artist in (user.top_artists or [])[:4] %}
-                                    <div class="flex items-center gap-3 rounded-xl border border-white/5 bg-slate-900/60 p-3 transition hover:border-emerald-400/50 hover:bg-emerald-500/10">
-                                        <img src="{{ artist.image }}" alt="Image of artist {{ artist.name }}" class="h-12 w-12 rounded-xl object-cover shadow-lg">
+                                    <div
+                                        class="flex items-center gap-3 rounded-xl border border-white/5 bg-slate-900/60 p-3 transition hover:border-emerald-400/50 hover:bg-emerald-500/10">
+                                        <img src="{{ artist.image }}" alt="Image of artist {{ artist.name }}"
+                                            class="h-12 w-12 rounded-xl object-cover shadow-lg">
                                         <div>
-                                            <a href="{{ artist.spotify_url }}" target="_blank" class="font-semibold text-emerald-100 hover:text-emerald-300">{{ artist.name }}</a>
-                                            <p class="text-xs text-emerald-200/70 mt-1">{{ ", ".join(artist.genres) }}</p>
+                                            <a href="{{ artist.spotify_url }}" target="_blank"
+                                                class="font-semibold text-emerald-100 hover:text-emerald-300">{{
+                                                artist.name }}</a>
+                                            <p class="text-xs text-emerald-200/70 mt-1">{{ ", ".join(artist.genres) }}
+                                            </p>
                                         </div>
                                     </div>
                                     {% else %}
-                                    <p class="text-sm text-emerald-200/60">We don't have favorite artists yet. Follow more creators to unlock this list.</p>
+                                    <p class="text-sm text-emerald-200/60">We don't have favorite artists yet. Follow
+                                        more creators to unlock this list.</p>
                                     {% endfor %}
                                 </div>
                             </div>
@@ -103,14 +128,20 @@
                             <div class="rounded-2xl border border-white/5 bg-white/5 p-5 shadow-xl shadow-black/30">
                                 <div class="flex items-center justify-between">
                                     <h2 class="text-lg font-semibold text-emerald-100">Top Genres</h2>
-                                    <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-200">{{ (user.genres or []) | length }}</span>
+                                    <span
+                                        class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-200">{{
+                                        (user.genres or []) | length }}</span>
                                 </div>
-                                <p class="mt-2 text-xs text-emerald-100/80">A palette of sounds shaping {{ user.display_name }}'s playlists.</p>
+                                <p class="mt-2 text-xs text-emerald-100/80">A palette of sounds shaping {{
+                                    user.display_name }}'s playlists.</p>
                                 <ul class="mt-4 flex flex-wrap gap-2">
                                     {% for genre in (user.genres or []) %}
-                                    <li class="rounded-full bg-gradient-to-r from-emerald-500/30 to-cyan-500/30 px-3 py-1 text-xs font-medium text-emerald-50 shadow-lg shadow-emerald-900/30">{{ genre }}</li>
+                                    <li
+                                        class="rounded-full bg-gradient-to-r from-emerald-500/30 to-cyan-500/30 px-3 py-1 text-xs font-medium text-emerald-50 shadow-lg shadow-emerald-900/30">
+                                        {{ genre }}</li>
                                     {% else %}
-                                    <li class="text-sm text-emerald-200/60">Genres will appear once you explore more music.</li>
+                                    <li class="text-sm text-emerald-200/60">Genres will appear once you explore more
+                                        music.</li>
                                     {% endfor %}
                                 </ul>
                             </div>
@@ -119,22 +150,33 @@
 
                     <!-- Edit Form -->
                     <div id="edit-form" class="hidden mt-8">
-                        <form id="profile-form" action="/update_profile" method="POST" class="space-y-5 rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-inner shadow-black/40">
+                        <form id="profile-form" action="/update_profile" method="POST"
+                            class="space-y-5 rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-inner shadow-black/40">
                             <div>
-                                <label for="bio" class="mb-2 block text-xs font-semibold uppercase tracking-widest text-emerald-200">Bio</label>
-                                <textarea id="bio" name="bio" class="w-full rounded-2xl border border-transparent bg-slate-800/70 p-3 text-sm text-emerald-50 placeholder-emerald-200/50 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500" rows="3">{{ user.bio }}</textarea>
+                                <label for="bio"
+                                    class="mb-2 block text-xs font-semibold uppercase tracking-widest text-emerald-200">Bio</label>
+                                <textarea id="bio" name="bio"
+                                    class="w-full rounded-2xl border border-transparent bg-slate-800/70 p-3 text-sm text-emerald-50 placeholder-emerald-200/50 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500"
+                                    rows="3">{{ user.bio }}</textarea>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                 <div>
-                                    <label for="age" class="mb-2 block text-xs font-semibold uppercase tracking-widest text-emerald-200">Age</label>
-                                    <input type="number" id="age" name="age" class="w-full rounded-2xl border border-transparent bg-slate-800/70 p-3 text-sm text-emerald-50 placeholder-emerald-200/50 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500" value="{{ user.age }}">
+                                    <label for="age"
+                                        class="mb-2 block text-xs font-semibold uppercase tracking-widest text-emerald-200">Age</label>
+                                    <input type="number" id="age" name="age"
+                                        class="w-full rounded-2xl border border-transparent bg-slate-800/70 p-3 text-sm text-emerald-50 placeholder-emerald-200/50 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500"
+                                        value="{{ user.age }}">
                                 </div>
                                 <div>
-                                    <label for="location" class="mb-2 block text-xs font-semibold uppercase tracking-widest text-emerald-200">Location</label>
-                                    <input type="text" id="location" name="location" class="w-full rounded-2xl border border-transparent bg-slate-800/70 p-3 text-sm text-emerald-50 placeholder-emerald-200/50 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500" value="{{ user.location }}">
+                                    <label for="location"
+                                        class="mb-2 block text-xs font-semibold uppercase tracking-widest text-emerald-200">Location</label>
+                                    <input type="text" id="location" name="location"
+                                        class="w-full rounded-2xl border border-transparent bg-slate-800/70 p-3 text-sm text-emerald-50 placeholder-emerald-200/50 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500"
+                                        value="{{ user.location }}">
                                 </div>
                             </div>
-                            <button type="submit" class="w-full rounded-full bg-gradient-to-r from-emerald-400 to-lime-400 px-6 py-3 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-900/50 transition hover:from-emerald-300 hover:to-lime-300">
+                            <button type="submit"
+                                class="w-full rounded-full bg-gradient-to-r from-emerald-400 to-lime-400 px-6 py-3 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-900/50 transition hover:from-emerald-300 hover:to-lime-300">
                                 Save Changes
                             </button>
                         </form>
@@ -147,15 +189,22 @@
                 <div class="rounded-3xl border border-white/5 bg-slate-900/60 p-6 shadow-xl shadow-black/30">
                     <div class="flex items-center justify-between">
                         <h2 class="text-2xl font-semibold text-emerald-100">Top Tracks</h2>
-                        <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-200">{{ (user.top_tracks or []) | length }} tracks</span>
+                        <span
+                            class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-200">{{
+                            (user.top_tracks or []) | length }} tracks</span>
                     </div>
-                    <p class="mt-2 text-sm text-emerald-100/80">Dive into the songs that define {{ user.display_name }}'s current vibe.</p>
+                    <p class="mt-2 text-sm text-emerald-100/80">Dive into the songs that define {{ user.display_name
+                        }}'s current vibe.</p>
                     <div class="mt-6 space-y-4">
                         {% for track in (user.top_tracks or []) %}
-                        <div class="flex items-center gap-4 rounded-2xl border border-white/5 bg-white/5 p-3 transition hover:border-emerald-400/50 hover:bg-emerald-500/10">
-                            <img src="{{ track.image }}" alt="Album cover of track {{ track.name }}" class="h-16 w-16 rounded-2xl object-cover shadow-lg">
+                        <div
+                            class="flex items-center gap-4 rounded-2xl border border-white/5 bg-white/5 p-3 transition hover:border-emerald-400/50 hover:bg-emerald-500/10">
+                            <img src="{{ track.image }}" alt="Album cover of track {{ track.name }}"
+                                class="h-16 w-16 rounded-2xl object-cover shadow-lg">
                             <div class="flex-1">
-                                <a href="{{ track.spotify_url }}" target="_blank" class="text-lg font-semibold text-emerald-100 hover:text-emerald-300">{{ track.name }}</a>
+                                <a href="{{ track.spotify_url }}" target="_blank"
+                                    class="text-lg font-semibold text-emerald-100 hover:text-emerald-300">{{ track.name
+                                    }}</a>
                                 <p class="text-xs uppercase tracking-widest text-emerald-200/70 mt-1">Album</p>
                                 <p class="text-sm text-emerald-100/80">{{ track.album }}</p>
                             </div>
@@ -165,7 +214,8 @@
                             </div>
                         </div>
                         {% else %}
-                        <p class="text-sm text-emerald-200/60">No tracks found. Start listening to populate this section.</p>
+                        <p class="text-sm text-emerald-200/60">No tracks found. Start listening to populate this
+                            section.</p>
                         {% endfor %}
                     </div>
                 </div>
@@ -179,7 +229,7 @@
     </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             function toggleEditForm() {
                 const form = document.getElementById('edit-form');
                 form.classList.toggle('hidden');
@@ -188,29 +238,35 @@
 
             const profileForm = document.getElementById('profile-form');
             if (profileForm) {
-                profileForm.addEventListener('submit', function(e) {
+                profileForm.addEventListener('submit', function (e) {
                     e.preventDefault();
                     const formData = new FormData(this);
 
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
                     fetch('/update_profile', {
                         method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken
+                        },
                         body: formData
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.message === "Profile updated successfully!") {
-                            location.reload();
-                        } else {
-                            alert("Error: " + data.error);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    });
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.message === "Profile updated successfully!") {
+                                location.reload();
+                            } else {
+                                alert("Error: " + data.error);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
                 });
             }
         });
     </script>
 
 </body>
+
 </html>
